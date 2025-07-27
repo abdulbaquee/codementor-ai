@@ -75,6 +75,87 @@ function parseArguments(array $args): array
     ];
 }
 
+// Generate web-accessible URL for the report
+function generateWebUrl(string $reportPath): string
+{
+    // Extract the filename from the report path
+    $filename = basename($reportPath);
+    
+    // Check if we're in a Laravel project structure
+    $projectRoot = getProjectRoot();
+    $relativePath = str_replace($projectRoot, '', dirname($reportPath));
+    
+    // Generate web URLs for different scenarios
+    $urls = [];
+    
+    // Apache with DocumentRoot at /Users/abdul/Sites
+    $urls[] = "http://localhost" . $relativePath . "/" . $filename;
+    
+    // PHP Development Server (if running on port 8080)
+    $urls[] = "http://localhost:8080/" . $filename;
+    
+    // Alternative ports
+    $urls[] = "http://localhost:8000/" . $filename;
+    $urls[] = "http://localhost:3000/" . $filename;
+    
+    // Return the most likely URL (Apache)
+    return $urls[0];
+}
+
+// Generate multiple web URL options
+function generateWebUrlOptions(string $reportPath): array
+{
+    $filename = basename($reportPath);
+    $projectRoot = getProjectRoot();
+    $relativePath = str_replace($projectRoot, '', dirname($reportPath));
+    
+    // Clean up the relative path for Apache
+    $apachePath = str_replace('/Users/abdul/Sites', '', $projectRoot);
+    $apachePath = $apachePath . '/codementor-ai/reports/' . $filename;
+    
+    return [
+        "Apache (localhost)" => "http://localhost" . $apachePath,
+        "PHP Dev Server (8080)" => "http://localhost:8080/" . $filename,
+        "PHP Dev Server (8000)" => "http://localhost:8000/" . $filename,
+        "Alternative (3000)" => "http://localhost:3000/" . $filename,
+    ];
+}
+
+// Get the project root directory
+function getProjectRoot(): string
+{
+    $currentDir = __DIR__;
+    
+    // If we're in a Laravel project, go up to the project root
+    if (file_exists($currentDir . '/../artisan')) {
+        return realpath($currentDir . '/../');
+    }
+    
+    // If we're in the codementor-ai directory, go up one level
+    if (basename($currentDir) === 'codementor-ai') {
+        return realpath($currentDir . '/../');
+    }
+    
+    // Default to current directory
+    return $currentDir;
+}
+
+// Check if PHP development server is running
+function isDevServerRunning(): bool
+{
+    $ports = [8080, 8000, 3000];
+    
+    foreach ($ports as $port) {
+        $connection = @fsockopen('localhost', $port, $errno, $errstr, 1);
+        if (is_resource($connection)) {
+            fclose($connection);
+            return true;
+        }
+    }
+    
+    return false;
+}
+
 // Main execution function
 function main(): void
 {
@@ -114,8 +195,15 @@ function main(): void
     $progress = new \ReviewSystem\Engine\ProgressIndicator();
     $reportWriter = new \ReviewSystem\Engine\ReportWriter($config);
 
-    // Get target directory from command line arguments
-    $targetDir = $argv[1] ?? '.';
+    // Get target directory from command line arguments (skip flags)
+    $targetDir = '.';
+    foreach ($argv as $arg) {
+        if (!str_starts_with($arg, '--') && $arg !== $argv[0]) {
+            $targetDir = $arg;
+            break;
+        }
+    }
+    
     if (!is_dir($targetDir)) {
         echo "❌ Error: Target directory '$targetDir' does not exist.\n";
         exit(1);
@@ -145,7 +233,34 @@ function main(): void
     echo "Total Issues: $totalIssues\n";
     echo "Critical: $criticalIssues\n";
     echo "Warnings: $warningIssues\n";
-    echo "Report: $reportPath\n";
+    
+    // Always show web-accessible URL
+    if ($reportPath && file_exists($reportPath)) {
+        $webUrlOptions = generateWebUrlOptions($reportPath);
+        echo "Report: $reportPath\n";
+        echo "🌐 Web URLs:\n";
+        foreach ($webUrlOptions as $server => $url) {
+            echo "   $server: $url\n";
+        }
+        
+        // Check if PHP dev server is running and provide instructions
+        if (!isDevServerRunning()) {
+            echo "\n💡 To start a PHP development server for easy access:\n";
+            echo "   cd codementor-ai/reports && php -S localhost:8080\n";
+            echo "   Then visit: http://localhost:8080/" . basename($reportPath) . "\n";
+        }
+    } else {
+        // Fallback: generate a timestamp-based filename and show potential URLs
+        $timestamp = date('Ymd_His');
+        $fallbackFilename = "report-{$timestamp}.html";
+        $webUrlOptions = generateWebUrlOptions("codementor-ai/reports/" . $fallbackFilename);
+        echo "Report: Report generation may have failed\n";
+        echo "🌐 Web URLs:\n";
+        foreach ($webUrlOptions as $server => $url) {
+            echo "   $server: $url\n";
+        }
+        echo "💡 If report file doesn't exist, check the reports directory\n";
+    }
 
     if ($totalIssues === 0) {
         echo "\n🎉 No issues found! Your code looks great!\n";
