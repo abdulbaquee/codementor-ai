@@ -11,7 +11,7 @@ use ReflectionParameter;
 
 /**
  * Comprehensive rule validation system
- * 
+ *
  * Validates:
  * - Rule class existence and autoloading
  * - Rule interface implementation
@@ -158,7 +158,7 @@ class RuleValidator
         }
 
         $scanPaths = $this->config['scan_paths'];
-        
+
         if (empty($scanPaths)) {
             $this->validationErrors[] = [
                 'type' => 'empty_scan_paths',
@@ -215,7 +215,7 @@ class RuleValidator
         }
 
         $rules = $this->config['rules'];
-        
+
         if (empty($rules)) {
             $this->validationWarnings[] = [
                 'type' => 'empty_rules',
@@ -253,17 +253,17 @@ class RuleValidator
             }
 
             $ruleValidation = $this->validateRule($ruleClass);
-            
+
             foreach ($ruleValidation['errors'] as $error) {
                 $error['rule_class'] = $ruleClass;
                 $this->validationErrors[] = $error;
             }
-            
+
             foreach ($ruleValidation['warnings'] as $warning) {
                 $warning['rule_class'] = $ruleClass;
                 $this->validationWarnings[] = $warning;
             }
-            
+
             foreach ($ruleValidation['info'] as $info) {
                 $info['rule_class'] = $ruleClass;
                 $this->validationInfo[] = $info;
@@ -289,10 +289,10 @@ class RuleValidator
             }
 
             $reflection = new ReflectionClass($ruleClass);
-            
+
             // Check for required PHP extensions
             $this->checkRequiredExtensions($reflection, $ruleClass);
-            
+
             // Check for required Composer packages
             $this->checkRequiredPackages($reflection, $ruleClass);
         }
@@ -308,7 +308,7 @@ class RuleValidator
         }
 
         $ruleCount = count($this->config['rules']);
-        
+
         if ($ruleCount > 20) {
             $this->validationWarnings[] = [
                 'type' => 'too_many_rules',
@@ -349,7 +349,7 @@ class RuleValidator
         }
 
         $reflection = new ReflectionClass($ruleClass);
-        
+
         // Check if class is instantiable
         if (!$reflection->isInstantiable()) {
             $errors[] = [
@@ -418,7 +418,7 @@ class RuleValidator
         $warnings = [];
 
         $reflection = new ReflectionClass($ruleClass);
-        
+
         // Check if check method exists
         if (!$reflection->hasMethod('check')) {
             $errors[] = [
@@ -429,7 +429,7 @@ class RuleValidator
             ];
         } else {
             $checkMethod = $reflection->getMethod('check');
-            
+
             // Validate method visibility
             if (!$checkMethod->isPublic()) {
                 $errors[] = [
@@ -450,10 +450,14 @@ class RuleValidator
     /**
      * Validate check method signature
      */
-    private function validateCheckMethodSignature(ReflectionMethod $method, string $ruleClass, array &$errors, array &$warnings): void
-    {
+    private function validateCheckMethodSignature(
+        ReflectionMethod $method,
+        string $ruleClass,
+        array &$errors,
+        array &$warnings
+    ): void {
         $parameters = $method->getParameters();
-        
+
         if (count($parameters) !== 1) {
             $errors[] = [
                 'type' => 'invalid_check_method_parameters',
@@ -465,9 +469,10 @@ class RuleValidator
         }
 
         $parameter = $parameters[0];
-        
+
         // Check parameter type
-        if (!$parameter->getType() || $parameter->getType()->getName() !== 'string') {
+        $parameterType = $parameter->getType();
+        if (!$parameterType || $this->getTypeName($parameterType) !== 'string') {
             $errors[] = [
                 'type' => 'invalid_check_method_parameter_type',
                 'message' => "Check method parameter in '{$ruleClass}' must be string",
@@ -488,7 +493,7 @@ class RuleValidator
 
         // Check return type
         $returnType = $method->getReturnType();
-        if (!$returnType || $returnType->getName() !== 'array') {
+        if (!$returnType || $this->getTypeName($returnType) !== 'array') {
             $errors[] = [
                 'type' => 'invalid_check_method_return_type',
                 'message' => "Check method in '{$ruleClass}' must return array",
@@ -513,7 +518,8 @@ class RuleValidator
             $errors[] = [
                 'type' => 'constructor_requires_parameters',
                 'message' => "Rule class '{$ruleClass}' constructor requires parameters",
-                'suggestion' => "Rules must be instantiable without parameters. Use dependency injection or default values.",
+                'suggestion' => "Rules must be instantiable without parameters. " .
+                    "Use dependency injection or default values.",
                 'severity' => 'error',
             ];
         }
@@ -604,13 +610,13 @@ class RuleValidator
     {
         $reflection = new ReflectionClass($ruleClass);
         $fileName = $reflection->getFileName();
-        
+
         if (!$fileName || !file_exists($fileName)) {
             return;
         }
 
         $content = file_get_contents($fileName);
-        
+
         // Check for potential performance issues
         $performancePatterns = [
             'file_get_contents' => 'Consider using FileScanner for large files',
@@ -666,7 +672,7 @@ class RuleValidator
     public function getDetailedReport(): array
     {
         $validation = $this->validateConfiguration();
-        
+
         return [
             'validation' => $validation,
             'config_analysis' => $this->analyzeConfiguration(),
@@ -752,4 +758,33 @@ class RuleValidator
 
         return $recommendations;
     }
-} 
+
+    /**
+     * Get the name of a reflection type, handling different type implementations
+     */
+    private function getTypeName(\ReflectionType $type): string
+    {
+        if ($type instanceof \ReflectionNamedType) {
+            return $type->getName();
+        }
+
+        if ($type instanceof \ReflectionUnionType) {
+            $types = [];
+            foreach ($type->getTypes() as $unionType) {
+                $types[] = $this->getTypeName($unionType);
+            }
+            return implode('|', $types);
+        }
+
+        if ($type instanceof \ReflectionIntersectionType) {
+            $types = [];
+            foreach ($type->getTypes() as $intersectionType) {
+                $types[] = $this->getTypeName($intersectionType);
+            }
+            return implode('&', $types);
+        }
+
+        // Fallback for unknown types
+        return (string) $type;
+    }
+}

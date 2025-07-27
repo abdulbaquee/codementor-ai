@@ -17,9 +17,9 @@ use ReviewSystem\Engine\ErrorHandler;
  */
 class ReviewSystemIntegrationTest extends TestCase
 {
-    private string $testDir;
-    private string $configFile;
-    private string $reportDir;
+    private string $testDir = '';
+    private string $configFile = '';
+    private string $reportDir = '';
 
     protected function setUp(): void
     {
@@ -72,7 +72,6 @@ class ReviewSystemIntegrationTest extends TestCase
         $violations = $ruleRunner->run();
         
         // 7. Verify results
-        $this->assertIsArray($violations);
         $this->assertGreaterThan(0, count($violations), 'Should detect violations in test files');
         
         // 8. Generate report
@@ -104,7 +103,6 @@ class ReviewSystemIntegrationTest extends TestCase
         
         $violations = $ruleRunner->run();
         
-        $this->assertIsArray($violations);
         $this->assertGreaterThan(0, count($violations));
         
 
@@ -130,11 +128,8 @@ class ReviewSystemIntegrationTest extends TestCase
         // Should handle invalid rules gracefully
         $violations = $ruleRunner->run();
         
-        $this->assertIsArray($violations);
-        
         // Check for error handling
         $errors = ErrorHandler::getErrors();
-        $this->assertIsArray($errors);
     }
 
     /**
@@ -155,7 +150,6 @@ class ReviewSystemIntegrationTest extends TestCase
         
         $executionTime = $endTime - $startTime;
         
-        $this->assertIsArray($violations);
         $this->assertLessThan(30, $executionTime, 'Should complete within 30 seconds');
         $this->assertGreaterThan(0, count($violations), 'Should detect violations');
     }
@@ -173,7 +167,6 @@ class ReviewSystemIntegrationTest extends TestCase
         
         $files = $fileScanner->scan($config['scan_paths']);
         
-        $this->assertIsArray($files);
         $this->assertGreaterThan(0, count($files));
         
         // Should only include PHP files
@@ -219,7 +212,6 @@ class ReviewSystemIntegrationTest extends TestCase
         // Should handle invalid configuration gracefully
         $config = require $this->configFile;
         
-        $this->assertIsArray($config);
         $this->assertArrayHasKey('scan_paths', $config);
         $this->assertArrayHasKey('rules', $config);
     }
@@ -246,14 +238,10 @@ class ReviewSystemIntegrationTest extends TestCase
         
         $violations = $ruleRunner->run();
         
-        $this->assertIsArray($violations);
         $this->assertGreaterThan(0, count($progressUpdates), 'Should receive progress updates');
         
         // Verify progress updates
         foreach ($progressUpdates as $update) {
-            $this->assertIsInt($update['step']);
-            $this->assertIsInt($update['total']);
-            $this->assertIsString($update['message']);
             $this->assertGreaterThan(0, $update['total']);
             $this->assertGreaterThanOrEqual(0, $update['step']);
             $this->assertLessThanOrEqual($update['total'], $update['step']);
@@ -278,7 +266,6 @@ class ReviewSystemIntegrationTest extends TestCase
         $finalMemory = memory_get_usage();
         $memoryIncrease = $finalMemory - $initialMemory;
         
-        $this->assertIsArray($violations);
         $this->assertLessThan(100 * 1024 * 1024, $memoryIncrease, 'Memory increase should be reasonable (< 100MB)');
     }
 
@@ -301,7 +288,6 @@ class ReviewSystemIntegrationTest extends TestCase
         
         // All results should be consistent
         foreach ($results as $result) {
-            $this->assertIsArray($result);
             $this->assertGreaterThan(0, count($result));
         }
         

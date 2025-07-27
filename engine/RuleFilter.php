@@ -17,7 +17,7 @@ class RuleFilter
 
     /**
      * Add a rule to the filter
-     * 
+     *
      * @param RuleInterface $rule The rule to add
      * @return self
      */
@@ -29,7 +29,7 @@ class RuleFilter
 
     /**
      * Add multiple rules to the filter
-     * 
+     *
      * @param array $rules Array of RuleInterface instances
      * @return self
      */
@@ -45,7 +45,7 @@ class RuleFilter
 
     /**
      * Filter rules by category
-     * 
+     *
      * @param string|array $categories Category or array of categories to filter by
      * @return self
      */
@@ -58,7 +58,7 @@ class RuleFilter
 
     /**
      * Filter rules by severity
-     * 
+     *
      * @param string|array $severities Severity or array of severities to filter by
      * @return self
      */
@@ -71,7 +71,7 @@ class RuleFilter
 
     /**
      * Filter rules by tags
-     * 
+     *
      * @param string|array $tags Tag or array of tags to filter by
      * @return self
      */
@@ -84,7 +84,7 @@ class RuleFilter
 
     /**
      * Filter rules by enabled status
-     * 
+     *
      * @param bool $enabled Whether to filter for enabled or disabled rules
      * @return self
      */
@@ -96,7 +96,7 @@ class RuleFilter
 
     /**
      * Filter rules by author
-     * 
+     *
      * @param string|array $authors Author or array of authors to filter by
      * @return self
      */
@@ -109,7 +109,7 @@ class RuleFilter
 
     /**
      * Filter rules by class name pattern
-     * 
+     *
      * @param string $pattern Regex pattern to match class names
      * @return self
      */
@@ -121,7 +121,7 @@ class RuleFilter
 
     /**
      * Filter rules by priority (category-based)
-     * 
+     *
      * @param int $minPriority Minimum priority level (1 = highest)
      * @param int $maxPriority Maximum priority level (10 = lowest)
      * @return self
@@ -137,7 +137,7 @@ class RuleFilter
 
     /**
      * Clear all filters
-     * 
+     *
      * @return self
      */
     public function clearFilters(): self
@@ -148,7 +148,7 @@ class RuleFilter
 
     /**
      * Get filtered rules
-     * 
+     *
      * @return array Array of filtered RuleInterface instances
      */
     public function getFilteredRules(): array
@@ -166,7 +166,7 @@ class RuleFilter
 
     /**
      * Get rules grouped by category
-     * 
+     *
      * @return array Rules grouped by category
      */
     public function getGroupedByCategory(): array
@@ -186,7 +186,7 @@ class RuleFilter
 
     /**
      * Get rules grouped by severity
-     * 
+     *
      * @return array Rules grouped by severity
      */
     public function getGroupedBySeverity(): array
@@ -206,7 +206,7 @@ class RuleFilter
 
     /**
      * Get rules grouped by priority
-     * 
+     *
      * @return array Rules grouped by priority level
      */
     public function getGroupedByPriority(): array
@@ -227,7 +227,7 @@ class RuleFilter
 
     /**
      * Get statistics about the rules
-     * 
+     *
      * @return array Statistics about the rules
      */
     public function getStatistics(): array
@@ -264,7 +264,7 @@ class RuleFilter
 
     /**
      * Get rules with full metadata
-     * 
+     *
      * @return array Array of rules with their metadata
      */
     public function getRulesWithMetadata(): array
@@ -276,7 +276,7 @@ class RuleFilter
             $metadata['priority'] = RuleCategory::getPriority($rule->getCategory());
             $metadata['category_display_name'] = RuleCategory::getDisplayName($rule->getCategory());
             $metadata['category_icon'] = RuleCategory::getIcon($rule->getCategory());
-            
+
             $rulesWithMetadata[] = $metadata;
         }
 
@@ -285,7 +285,7 @@ class RuleFilter
 
     /**
      * Check if a rule matches all applied filters
-     * 
+     *
      * @param RuleInterface $rule The rule to check
      * @return bool Whether the rule matches all filters
      */
@@ -357,7 +357,7 @@ class RuleFilter
 
     /**
      * Get rules by category with metadata
-     * 
+     *
      * @param string $category The category to filter by
      * @return array Rules in the category with metadata
      */
@@ -368,7 +368,7 @@ class RuleFilter
 
     /**
      * Get rules by severity with metadata
-     * 
+     *
      * @param string $severity The severity to filter by
      * @return array Rules with the specified severity and metadata
      */
@@ -379,7 +379,7 @@ class RuleFilter
 
     /**
      * Get high priority rules (security, performance, best practices)
-     * 
+     *
      * @return array High priority rules with metadata
      */
     public function getHighPriorityRules(): array
@@ -389,7 +389,7 @@ class RuleFilter
 
     /**
      * Get medium priority rules (maintainability, architecture, testing)
-     * 
+     *
      * @return array Medium priority rules with metadata
      */
     public function getMediumPriorityRules(): array
@@ -399,11 +399,11 @@ class RuleFilter
 
     /**
      * Get low priority rules (documentation, style, general)
-     * 
+     *
      * @return array Low priority rules with metadata
      */
     public function getLowPriorityRules(): array
     {
         return $this->byPriority(7, 10)->getRulesWithMetadata();
     }
-} 
+}

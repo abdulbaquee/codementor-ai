@@ -21,7 +21,7 @@ class RuleCategory
 
     /**
      * Get all available categories
-     * 
+     *
      * @return array Array of all category constants
      */
     public static function getAll(): array
@@ -42,7 +42,7 @@ class RuleCategory
 
     /**
      * Get category display names
-     * 
+     *
      * @return array Array mapping category keys to display names
      */
     public static function getDisplayNames(): array
@@ -63,7 +63,7 @@ class RuleCategory
 
     /**
      * Get category descriptions
-     * 
+     *
      * @return array Array mapping category keys to descriptions
      */
     public static function getDescriptions(): array
@@ -84,7 +84,7 @@ class RuleCategory
 
     /**
      * Get category icons/emojis
-     * 
+     *
      * @return array Array mapping category keys to icons
      */
     public static function getIcons(): array
@@ -105,7 +105,7 @@ class RuleCategory
 
     /**
      * Get category severity levels
-     * 
+     *
      * @return array Array mapping category keys to default severity levels
      */
     public static function getDefaultSeverities(): array
@@ -126,7 +126,7 @@ class RuleCategory
 
     /**
      * Get category priority levels (1 = highest, 10 = lowest)
-     * 
+     *
      * @return array Array mapping category keys to priority levels
      */
     public static function getPriorities(): array
@@ -147,7 +147,7 @@ class RuleCategory
 
     /**
      * Check if a category is valid
-     * 
+     *
      * @param string $category The category to validate
      * @return bool Whether the category is valid
      */
@@ -158,7 +158,7 @@ class RuleCategory
 
     /**
      * Get display name for a category
-     * 
+     *
      * @param string $category The category key
      * @return string The display name
      */
@@ -170,7 +170,7 @@ class RuleCategory
 
     /**
      * Get description for a category
-     * 
+     *
      * @param string $category The category key
      * @return string The description
      */
@@ -182,7 +182,7 @@ class RuleCategory
 
     /**
      * Get icon for a category
-     * 
+     *
      * @param string $category The category key
      * @return string The icon
      */
@@ -194,7 +194,7 @@ class RuleCategory
 
     /**
      * Get default severity for a category
-     * 
+     *
      * @param string $category The category key
      * @return string The default severity
      */
@@ -206,7 +206,7 @@ class RuleCategory
 
     /**
      * Get priority for a category
-     * 
+     *
      * @param string $category The category key
      * @return int The priority level
      */
@@ -218,31 +218,31 @@ class RuleCategory
 
     /**
      * Get categories grouped by priority
-     * 
+     *
      * @return array Categories grouped by priority level
      */
     public static function getGroupedByPriority(): array
     {
         $grouped = [];
         $priorities = self::getPriorities();
-        
+
         foreach ($priorities as $category => $priority) {
             $grouped[$priority][] = $category;
         }
-        
+
         ksort($grouped);
         return $grouped;
     }
 
     /**
      * Get categories with full metadata
-     * 
+     *
      * @return array Array of categories with all metadata
      */
     public static function getWithMetadata(): array
     {
         $categories = [];
-        
+
         foreach (self::getAll() as $category) {
             $categories[$category] = [
                 'key' => $category,
@@ -253,7 +253,7 @@ class RuleCategory
                 'priority' => self::getPriority($category),
             ];
         }
-        
+
         return $categories;
     }
-} 
+}

@@ -91,4 +91,4 @@ if (!$validation['is_valid']) {
 } else {
     echo "✅ Configuration is valid and ready to use!\n";
     exit(0);
-} 
+}

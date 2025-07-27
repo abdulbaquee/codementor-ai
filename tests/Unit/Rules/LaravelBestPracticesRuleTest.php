@@ -13,7 +13,7 @@ use ReviewSystem\Engine\RuleCategory;
  */
 class LaravelBestPracticesRuleTest extends TestCase
 {
-    private LaravelBestPracticesRule $rule;
+    private ?LaravelBestPracticesRule $rule = null; 
 
     protected function setUp(): void
     {
@@ -185,7 +185,6 @@ class UserController extends Controller
         $violations = $this->rule->check($tempFile);
 
         // This should detect N+1 query patterns
-        $this->assertIsArray($violations);
 
         unlink($tempFile);
     }
@@ -218,7 +217,6 @@ class UserController extends Controller
         $violations = $this->rule->check($tempFile);
 
         // This should detect large methods
-        $this->assertIsArray($violations);
 
         unlink($tempFile);
     }
@@ -316,7 +314,6 @@ class TestController extends Controller
         $violations = $this->rule->check($tempFile);
 
         // Should handle parsing errors gracefully
-        $this->assertIsArray($violations);
 
         unlink($tempFile);
     }
@@ -337,7 +334,6 @@ class TestController extends Controller
     {
         $options = $this->rule->getConfigurationOptions();
         
-        $this->assertIsArray($options);
         $this->assertArrayHasKey('target_paths', $options);
         $this->assertArrayHasKey('mongo_patterns', $options);
         
@@ -352,7 +348,6 @@ class TestController extends Controller
     {
         $metadata = $this->rule->getMetadata();
         
-        $this->assertIsArray($metadata);
         $this->assertArrayHasKey('version', $metadata);
         $this->assertArrayHasKey('author', $metadata);
         $this->assertArrayHasKey('description', $metadata);

@@ -14,23 +14,22 @@ use PhpParser\Node\Name;
 
 /**
  * Laravel Best Practices Rule
- * 
+ *
  * This rule enforces Laravel-specific best practices including:
  * - Input validation in controllers
  * - Security vulnerability detection
  * - Performance anti-patterns
  * - Common architectural issues
- * 
+ *
  * The rule uses AST parsing to analyze PHP code and identify violations
  * of Laravel best practices, providing detailed suggestions for improvements.
- * 
+ *
  * @package ReviewSystem\Rules
  * @author Review System
  * @version 1.0.0
  */
 class LaravelBestPracticesRule extends PerformanceOptimizedRule
 {
-
     public function getCategory(): string
     {
         return RuleCategory::BEST_PRACTICE;
@@ -94,7 +93,7 @@ class LaravelBestPracticesRule extends PerformanceOptimizedRule
             }
 
             $methods = $nodeFinder->findInstanceOf($class, ClassMethod::class);
-            
+
             foreach ($methods as $method) {
                 if ($this->isPublicMethod($method)) {
                     // Check for missing validation in public methods
@@ -120,11 +119,11 @@ class LaravelBestPracticesRule extends PerformanceOptimizedRule
     {
         $violations = [];
         $nodeFinder = $this->getNodeFinder();
-        
+
         // Check for eval() usage
-        $evalCalls = $nodeFinder->find($ast, function(Node $node) {
-            return $node instanceof FuncCall && 
-                   $node->name instanceof Name && 
+        $evalCalls = $nodeFinder->find($ast, function (Node $node) {
+            return $node instanceof FuncCall &&
+                   $node->name instanceof Name &&
                    $node->name->toString() === 'eval';
         });
 
@@ -141,9 +140,9 @@ class LaravelBestPracticesRule extends PerformanceOptimizedRule
         }
 
         // Check for direct SQL queries
-        $dbCalls = $nodeFinder->find($ast, function(Node $node) {
-            return $node instanceof MethodCall && 
-                   $node->var instanceof Variable && 
+        $dbCalls = $nodeFinder->find($ast, function (Node $node) {
+            return $node instanceof MethodCall &&
+                   $node->var instanceof Variable &&
                    $node->var->name === 'DB' &&
                    $node->name->toString() === 'raw';
         });
@@ -167,9 +166,9 @@ class LaravelBestPracticesRule extends PerformanceOptimizedRule
     {
         $violations = [];
         $nodeFinder = $this->getNodeFinder();
-        
+
         // Check for N+1 query patterns
-        $foreachLoops = $nodeFinder->find($ast, function(Node $node) {
+        $foreachLoops = $nodeFinder->find($ast, function (Node $node) {
             return $node instanceof Node\Stmt\Foreach_;
         });
 
@@ -194,10 +193,10 @@ class LaravelBestPracticesRule extends PerformanceOptimizedRule
     {
         $violations = [];
         $nodeFinder = $this->getNodeFinder();
-        
+
         // Check for large controller methods
         $methods = $nodeFinder->findInstanceOf($ast, ClassMethod::class);
-        
+
         foreach ($methods as $method) {
             $lineCount = $method->getEndLine() - $method->getStartLine();
             if ($lineCount > 50) {
@@ -256,7 +255,7 @@ class LaravelBestPracticesRule extends PerformanceOptimizedRule
         // Simplified check for database queries
         $code = $this->formatBadCode($node);
         $dbPatterns = ['->find', '->get', '->first', '->where', '->select'];
-        
+
         foreach ($dbPatterns as $pattern) {
             if (str_contains($code, $pattern)) {
                 return true;
@@ -272,7 +271,7 @@ class LaravelBestPracticesRule extends PerformanceOptimizedRule
         if ($node instanceof ClassMethod) {
             return $node->name->toString() . '() method';
         }
-        
+
         return 'code snippet';
     }
-} 
+}

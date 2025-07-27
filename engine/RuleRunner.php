@@ -23,7 +23,7 @@ class RuleRunner
 
     /**
      * Set a progress callback function
-     * 
+     *
      * @param callable $callback Function that receives (step, total, message)
      */
     public function setProgressCallback($callback): void
@@ -45,24 +45,24 @@ class RuleRunner
     {
         $startTime = microtime(true);
         $this->resetLogs();
-        
+
         try {
             $this->logInfo('Starting code review process...');
             $this->updateProgress(0, 100, 'Starting code review process...');
-            
+
             // Validate configuration before running
             $this->logInfo('Validating configuration...');
             $this->updateProgress(5, 100, 'Validating configuration...');
             $validator = new RuleValidator($this->config);
             $validation = $validator->validateConfiguration();
-            
+
             if (!$validation['is_valid']) {
                 $this->logError('Configuration validation failed', [
                     'category' => 'CONFIGURATION',
                     'severity' => 'CRITICAL',
                     'details' => 'The review system configuration contains errors that must be fixed before proceeding.'
                 ]);
-                
+
                 foreach ($validation['errors'] as $error) {
                     $this->logError($error['message'], [
                         'category' => 'CONFIGURATION',
@@ -71,15 +71,17 @@ class RuleRunner
                         'context' => $error['context'] ?? []
                     ]);
                 }
-                throw new RuntimeException('Invalid configuration detected. Please fix validation errors before running.');
+                throw new RuntimeException(
+                    'Invalid configuration detected. Please fix validation errors before running.'
+                );
             }
-            
+
             if (!empty($validation['warnings'])) {
                 $this->logWarning('Configuration warnings detected', [
                     'category' => 'CONFIGURATION',
                     'count' => count($validation['warnings'])
                 ]);
-                
+
                 foreach ($validation['warnings'] as $warning) {
                     $this->logWarning($warning['message'], [
                         'category' => 'CONFIGURATION',
@@ -94,13 +96,13 @@ class RuleRunner
             $this->updateProgress(10, 100, 'Initializing file scanner...');
             $scannerConfig = $this->config['file_scanner'] ?? [];
             $fileScanner = new FileScanner($scannerConfig);
-            
+
             $this->logInfo('Scanning files for analysis...');
             $this->updateProgress(15, 100, 'Scanning files for analysis...');
             $scanStartTime = microtime(true);
             $files = $fileScanner->scan($this->config['scan_paths']);
             $scanTime = microtime(true) - $scanStartTime;
-            
+
             $this->performance['file_scanning'] = $scanTime;
             $this->statistics['files_scanned'] = count($files);
             $this->statistics['scan_paths'] = $this->config['scan_paths'];
@@ -129,23 +131,28 @@ class RuleRunner
                     $ruleProgress = 20 + (($ruleIndex / $totalRules) * 70); // 20-90% for rules
                     $this->logInfo("Processing rule: {$ruleClass}");
                     $this->updateProgress((int)$ruleProgress, 100, "Processing rule: {$ruleClass}");
-                    
+
                     $ruleStartTime = microtime(true);
-                    
+
                     $rule = $this->createRuleInstance($ruleClass);
-                    $ruleViolations = $this->processRuleWithProgress($rule, $files, $ruleProgress, $totalRules, $ruleIndex);
+                    $ruleViolations = $this->processRuleWithProgress(
+                        $rule,
+                        $files,
+                        $ruleProgress,
+                        $totalRules,
+                        $ruleIndex
+                    );
                     $allViolations = array_merge($allViolations, $ruleViolations);
-                    
+
                     $ruleTime = microtime(true) - $ruleStartTime;
                     $this->performance['rules'][$ruleClass] = $ruleTime;
                     $rulesProcessed++;
-                    
+
                     $this->logInfo("Rule '{$ruleClass}' completed successfully", [
                         'category' => 'RULE_PROCESSING',
                         'violations_found' => count($ruleViolations),
                         'processing_time' => round($ruleTime, 3) . 's'
                     ]);
-                    
                 } catch (Throwable $e) {
                     $rulesFailed++;
                     $this->handleRuleError($ruleClass, $e);
@@ -165,14 +172,14 @@ class RuleRunner
                 'rules_failed' => $rulesFailed,
                 'violations_found' => count($allViolations)
             ]);
-            
+
             $this->updateProgress(95, 100, 'Generating final report...');
 
             return $allViolations;
         } catch (Throwable $e) {
             $totalTime = microtime(true) - $startTime;
             $this->performance['total_time'] = $totalTime;
-            
+
             $this->logError('Critical error in RuleRunner', [
                 'category' => 'CRITICAL',
                 'severity' => 'CRITICAL',
@@ -182,7 +189,7 @@ class RuleRunner
                 'trace' => $e->getTraceAsString(),
                 'total_time' => round($totalTime, 3) . 's'
             ]);
-            
+
             $this->updateProgress(100, 100, 'Error occurred during processing');
             throw new RuntimeException('Failed to run code review: ' . $e->getMessage(), 0, $e);
         }
@@ -302,38 +309,48 @@ class RuleRunner
     {
         // Validate class exists
         if (!class_exists($ruleClass)) {
-            throw new InvalidArgumentException("Rule class '{$ruleClass}' not found. Check if the class exists and is autoloaded.");
+            throw new InvalidArgumentException(
+                "Rule class '{$ruleClass}' not found. Check if the class exists and is autoloaded."
+            );
         }
 
         // Validate class implements RuleInterface
         if (!is_subclass_of($ruleClass, RuleInterface::class)) {
-            throw new InvalidArgumentException("Rule class '{$ruleClass}' must implement " . RuleInterface::class);
+            throw new InvalidArgumentException(
+                "Rule class '{$ruleClass}' must implement " . RuleInterface::class
+            );
         }
 
         // Validate class is instantiable (not abstract or interface)
         $reflection = new \ReflectionClass($ruleClass);
         if (!$reflection->isInstantiable()) {
-            throw new InvalidArgumentException("Rule class '{$ruleClass}' is not instantiable (abstract class or interface)");
+            throw new InvalidArgumentException(
+                "Rule class '{$ruleClass}' is not instantiable (abstract class or interface)"
+            );
         }
 
         // Validate constructor parameters
         $constructor = $reflection->getConstructor();
         if ($constructor && $constructor->getNumberOfRequiredParameters() > 0) {
-            throw new InvalidArgumentException("Rule class '{$ruleClass}' has required constructor parameters. Rules must be instantiable without parameters.");
+            throw new InvalidArgumentException(
+                "Rule class '{$ruleClass}' has required constructor parameters. " .
+                "Rules must be instantiable without parameters."
+            );
         }
 
-        try {
-            return new $ruleClass();
-        } catch (Throwable $e) {
-            throw new RuntimeException("Failed to instantiate rule class '{$ruleClass}': " . $e->getMessage(), 0, $e);
-        }
+        return new $ruleClass();
     }
 
     /**
      * Process a single rule against all files with progress updates
      */
-    private function processRuleWithProgress(RuleInterface $rule, array $files, float $ruleStartProgress, int $totalRules, int $ruleIndex): array
-    {
+    private function processRuleWithProgress(
+        RuleInterface $rule,
+        array $files,
+        float $ruleStartProgress,
+        int $totalRules,
+        int $ruleIndex
+    ): array {
         $ruleViolations = [];
         $ruleClass = get_class($rule);
         $filesProcessed = 0;
@@ -344,8 +361,12 @@ class RuleRunner
             try {
                 // Calculate progress within this rule
                 $fileProgress = $ruleStartProgress + (($fileIndex / $totalFiles) * (70 / $totalRules));
-                $this->updateProgress((int)$fileProgress, 100, "Processing {$file} with {$ruleClass}");
-                
+                $this->updateProgress(
+                    (int)$fileProgress,
+                    100,
+                    "Processing {$file} with {$ruleClass}"
+                );
+
                 if (!file_exists($file)) {
                     $this->logWarning("File not found during rule processing", [
                         'category' => 'FILE_PROCESSING',
@@ -369,13 +390,13 @@ class RuleRunner
                 }
 
                 $violations = $rule->check($file);
-                
+
                 // Validate violation format
                 if (!empty($violations)) {
                     $validatedViolations = $this->validateViolations($violations, $file, $ruleClass);
                     $ruleViolations = array_merge($ruleViolations, $validatedViolations);
                 }
-                
+
                 $filesProcessed++;
             } catch (Throwable $e) {
                 $filesFailed++;
@@ -493,7 +514,8 @@ class RuleRunner
 
         if ($e instanceof InvalidArgumentException) {
             $errorContext['severity'] = 'ERROR';
-            $errorContext['suggestion'] = 'Check your configuration file and ensure the rule class is properly configured';
+            $errorContext['suggestion'] = 'Check your configuration file and ensure the rule class is ' .
+                'properly configured';
         } else {
             $errorContext['severity'] = 'CRITICAL';
             $errorContext['suggestion'] = 'Check the rule implementation for bugs or compatibility issues';
@@ -513,9 +535,9 @@ class RuleRunner
             'message' => $message,
             'level' => 'ERROR'
         ], $context);
-        
+
         $this->errors[] = $error;
-        
+
         // Also log to PHP error log for debugging
         $logMessage = "[ReviewSystem ERROR] {$timestamp} - {$message}";
         if (!empty($context['category'])) {
@@ -535,9 +557,9 @@ class RuleRunner
             'message' => $message,
             'level' => 'WARNING'
         ], $context);
-        
+
         $this->warnings[] = $warning;
-        
+
         // Also log to PHP error log for debugging
         $logMessage = "[ReviewSystem WARNING] {$timestamp} - {$message}";
         if (!empty($context['category'])) {
@@ -557,9 +579,9 @@ class RuleRunner
             'message' => $message,
             'level' => 'INFO'
         ], $context);
-        
+
         $this->info[] = $info;
-        
+
         // Also log to PHP error log for debugging
         $logMessage = "[ReviewSystem INFO] {$timestamp} - {$message}";
         if (!empty($context['category'])) {

@@ -16,9 +16,9 @@ abstract class AbstractRule implements RuleInterface
 
     /**
      * Get the rule's category
-     * 
+     *
      * Override this method in your rule class to specify a custom category
-     * 
+     *
      * @return string The rule category
      */
     public function getCategory(): string
@@ -28,9 +28,9 @@ abstract class AbstractRule implements RuleInterface
 
     /**
      * Get the rule's name
-     * 
+     *
      * Override this method in your rule class to provide a custom name
-     * 
+     *
      * @return string A human-readable name for the rule
      */
     public function getName(): string
@@ -42,9 +42,9 @@ abstract class AbstractRule implements RuleInterface
 
     /**
      * Get the rule's description
-     * 
+     *
      * Override this method in your rule class to provide a custom description
-     * 
+     *
      * @return string A detailed description of what the rule checks for
      */
     public function getDescription(): string
@@ -54,9 +54,9 @@ abstract class AbstractRule implements RuleInterface
 
     /**
      * Get the rule's severity level
-     * 
+     *
      * Override this method in your rule class to specify a custom severity
-     * 
+     *
      * @return string The severity level
      */
     public function getSeverity(): string
@@ -66,9 +66,9 @@ abstract class AbstractRule implements RuleInterface
 
     /**
      * Get the rule's tags for additional categorization
-     * 
+     *
      * Override this method in your rule class to provide custom tags
-     * 
+     *
      * @return array Array of tags that describe the rule
      */
     public function getTags(): array
@@ -78,9 +78,9 @@ abstract class AbstractRule implements RuleInterface
 
     /**
      * Check if the rule is enabled by default
-     * 
+     *
      * Override this method in your rule class to change the default state
-     * 
+     *
      * @return bool Whether the rule should be enabled by default
      */
     public function isEnabledByDefault(): bool
@@ -90,9 +90,9 @@ abstract class AbstractRule implements RuleInterface
 
     /**
      * Get the rule's configuration options
-     * 
+     *
      * Override this method in your rule class to provide configuration options
-     * 
+     *
      * @return array Array of configuration options and their default values
      */
     public function getConfigurationOptions(): array
@@ -102,7 +102,7 @@ abstract class AbstractRule implements RuleInterface
 
     /**
      * Get the rule's metadata
-     * 
+     *
      * @return array Complete metadata about the rule
      */
     public function getMetadata(): array
@@ -125,9 +125,9 @@ abstract class AbstractRule implements RuleInterface
 
     /**
      * Get the rule's version
-     * 
+     *
      * Override this method in your rule class to specify a version
-     * 
+     *
      * @return string The rule version
      */
     protected function getVersion(): string
@@ -137,9 +137,9 @@ abstract class AbstractRule implements RuleInterface
 
     /**
      * Get the rule's author
-     * 
+     *
      * Override this method in your rule class to specify an author
-     * 
+     *
      * @return string The rule author
      */
     protected function getAuthor(): string
@@ -149,9 +149,9 @@ abstract class AbstractRule implements RuleInterface
 
     /**
      * Get the rule's creation date
-     * 
+     *
      * Override this method in your rule class to specify a creation date
-     * 
+     *
      * @return string The creation date in ISO 8601 format
      */
     protected function getCreatedAt(): string
@@ -161,9 +161,9 @@ abstract class AbstractRule implements RuleInterface
 
     /**
      * Get the rule's last update date
-     * 
+     *
      * Override this method in your rule class to specify an update date
-     * 
+     *
      * @return string The update date in ISO 8601 format
      */
     protected function getUpdatedAt(): string
@@ -173,7 +173,7 @@ abstract class AbstractRule implements RuleInterface
 
     /**
      * Format a class name for display
-     * 
+     *
      * @param string $className The class name to format
      * @return string The formatted class name
      */
@@ -181,17 +181,17 @@ abstract class AbstractRule implements RuleInterface
     {
         // Remove "Rule" suffix if present
         $name = preg_replace('/Rule$/', '', $className);
-        
+
         // Convert camelCase to Title Case
         $name = preg_replace('/([A-Z])/', ' $1', $name);
         $name = trim($name);
-        
+
         return ucwords($name);
     }
 
     /**
      * Validate that a violation has the required fields
-     * 
+     *
      * @param array $violation The violation to validate
      * @param string $filePath The file path for context
      * @return array The validated violation with defaults applied
@@ -218,7 +218,7 @@ abstract class AbstractRule implements RuleInterface
 
     /**
      * Create a violation with proper metadata
-     * 
+     *
      * @param string $message The violation message
      * @param int|null $line The line number where the violation occurred
      * @param string|null $bad The problematic code
@@ -242,4 +242,4 @@ abstract class AbstractRule implements RuleInterface
 
         return $violation;
     }
-} 
+}

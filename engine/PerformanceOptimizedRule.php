@@ -8,7 +8,7 @@ use PhpParser\Parser;
 
 /**
  * Performance-optimized base class for rules with caching and optimization features
- * 
+ *
  * This class provides:
  * - Shared parser instances to avoid recreation
  * - AST caching for repeated file analysis
@@ -19,19 +19,19 @@ abstract class PerformanceOptimizedRule extends AbstractRule
 {
     /** @var Parser|null Shared parser instance */
     private static $sharedParser = null;
-    
+
     /** @var NodeFinder|null Shared node finder instance */
     private static $sharedNodeFinder = null;
-    
+
     /** @var array AST cache for file contents */
     private static $astCache = [];
-    
+
     /** @var array Performance metrics */
     private static $performanceMetrics = [];
-    
+
     /** @var int Maximum cache size */
     private const MAX_CACHE_SIZE = 100;
-    
+
     /** @var int Cache TTL in seconds */
     private const CACHE_TTL = 300; // 5 minutes
 
@@ -41,7 +41,7 @@ abstract class PerformanceOptimizedRule extends AbstractRule
     protected function getParser(): Parser
     {
         if (self::$sharedParser === null) {
-            self::$sharedParser = (new ParserFactory)->createForHostVersion();
+            self::$sharedParser = (new ParserFactory())->createForHostVersion();
         }
         return self::$sharedParser;
     }
@@ -59,14 +59,14 @@ abstract class PerformanceOptimizedRule extends AbstractRule
 
     /**
      * Parse file with caching support
-     * 
+     *
      * @param string $filePath Path to the file
      * @return array|null Parsed AST or null if parsing failed
      */
     protected function parseFileWithCache(string $filePath): ?array
     {
         $cacheKey = $this->generateCacheKey($filePath);
-        
+
         // Check cache first
         if (isset(self::$astCache[$cacheKey])) {
             $cached = self::$astCache[$cacheKey];
@@ -75,18 +75,18 @@ abstract class PerformanceOptimizedRule extends AbstractRule
             }
             unset(self::$astCache[$cacheKey]);
         }
-        
+
         // Parse file
         $startTime = microtime(true);
         $code = file_get_contents($filePath);
         $ast = $this->getParser()->parse($code);
         $parseTime = microtime(true) - $startTime;
-        
+
         // Cache the result
         if ($ast !== null) {
             $this->cacheAst($cacheKey, $ast, $parseTime);
         }
-        
+
         return $ast;
     }
 
@@ -108,13 +108,13 @@ abstract class PerformanceOptimizedRule extends AbstractRule
             $oldestKey = array_key_first(self::$astCache);
             unset(self::$astCache[$oldestKey]);
         }
-        
+
         self::$astCache[$cacheKey] = [
             'ast' => $ast,
             'expires' => time() + self::CACHE_TTL,
             'parse_time' => $parseTime
         ];
-        
+
         // Track performance metrics
         $this->trackPerformance('parse_time', $parseTime);
     }
@@ -128,11 +128,11 @@ abstract class PerformanceOptimizedRule extends AbstractRule
         if (!isset(self::$performanceMetrics[$ruleName])) {
             self::$performanceMetrics[$ruleName] = [];
         }
-        
+
         if (!isset(self::$performanceMetrics[$ruleName][$metric])) {
             self::$performanceMetrics[$ruleName][$metric] = [];
         }
-        
+
         self::$performanceMetrics[$ruleName][$metric][] = $value;
     }
 
@@ -180,7 +180,7 @@ abstract class PerformanceOptimizedRule extends AbstractRule
     public function check(string $filePath): array
     {
         $startTime = microtime(true);
-        
+
         if (!file_exists($filePath)) {
             return [];
         }
@@ -193,17 +193,17 @@ abstract class PerformanceOptimizedRule extends AbstractRule
 
         // Run rule-specific checks
         $violations = $this->performChecks($ast, $filePath);
-        
+
         // Track total processing time
         $totalTime = microtime(true) - $startTime;
         $this->trackPerformance('total_time', $totalTime);
-        
+
         return $violations;
     }
 
     /**
      * Abstract method for rule-specific checks
-     * 
+     *
      * @param array $ast Parsed AST
      * @param string $filePath File path
      * @return array Violations found
@@ -217,20 +217,20 @@ abstract class PerformanceOptimizedRule extends AbstractRule
     {
         $violations = [];
         $chunkSize = 1024 * 1024; // 1MB chunks
-        
+
         $handle = fopen($filePath, 'r');
         if (!$handle) {
             return $violations;
         }
-        
+
         $buffer = '';
         while (!feof($handle)) {
             $buffer .= fread($handle, $chunkSize);
-            
+
             // Process complete lines
             $lines = explode("\n", $buffer);
             $buffer = array_pop($lines); // Keep incomplete line
-            
+
             foreach ($lines as $line) {
                 $result = $processor($line);
                 if (!empty($result)) {
@@ -238,8 +238,8 @@ abstract class PerformanceOptimizedRule extends AbstractRule
                 }
             }
         }
-        
+
         fclose($handle);
         return $violations;
     }
-} 
+}

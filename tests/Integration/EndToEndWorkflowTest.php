@@ -11,8 +11,8 @@ use ReviewSystem\Tests\TestCase;
  */
 class EndToEndWorkflowTest extends TestCase
 {
-    private string $testDir;
-    private string $originalConfig;
+    private string $testDir = '';
+    private string $originalConfig = '';
 
     protected function setUp(): void
     {
@@ -339,7 +339,7 @@ class TestController' . $i . ' extends Controller
     /**
      * Create test configuration
      */
-    private function createTestConfiguration(array $rules = null): void
+    private function createTestConfiguration(?array $rules = null): void
     {
         $defaultRules = [
             'ReviewSystem\Rules\NoMongoInControllerRule',

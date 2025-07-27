@@ -1,160 +1,14 @@
 <?php
 
+// phpcs:disable PSR1.Files.SideEffects.FoundWithSymbols
+
 /**
  * Review System Configuration Installer
- * 
+ *
  * This script automatically installs the review-system configuration
  * to the Laravel config directory, making it easy for developers
  * to set up the review system.
  */
-
-require_once __DIR__ . '/../vendor/autoload.php';
-
-use ReviewSystem\Engine\ConfigurationLoader;
-
-echo "🔧 Review System Configuration Installer\n";
-echo "========================================\n\n";
-
-// Check if we're in a Laravel environment
-$projectRoot = dirname(__DIR__);
-$artisanFile = $projectRoot . '/artisan';
-$configDir = $projectRoot . '/config';
-
-if (!file_exists($artisanFile)) {
-    echo "❌ Error: This script must be run from within a Laravel application.\n";
-    echo "Please run this script from your Laravel project root directory.\n";
-    echo "Expected artisan file at: $artisanFile\n\n";
-    exit(1);
-}
-
-echo "✅ Laravel application detected at: $projectRoot\n";
-$targetConfigFile = $configDir . '/review-system.php';
-$sourceConfigFile = __DIR__ . '/config.php';
-
-echo "📋 Installation Information:\n";
-echo "----------------------------\n";
-echo "Source Config: $sourceConfigFile\n";
-echo "Target Config: $targetConfigFile\n";
-echo "Config Directory: $configDir\n\n";
-
-// Check if source config exists
-if (!file_exists($sourceConfigFile)) {
-    echo "❌ Error: Source configuration file not found.\n";
-    echo "Please ensure the review-system is properly installed.\n\n";
-    exit(1);
-}
-
-// Check if target config already exists
-if (file_exists($targetConfigFile)) {
-    echo "⚠️  Warning: Configuration file already exists at:\n";
-    echo "   $targetConfigFile\n\n";
-    
-    echo "Options:\n";
-    echo "1. Backup existing and install new (recommended)\n";
-    echo "2. Overwrite existing file\n";
-    echo "3. Skip installation\n\n";
-    
-    echo "Enter your choice (1-3): ";
-    $handle = fopen("php://stdin", "r");
-    $choice = trim(fgets($handle));
-    fclose($handle);
-    
-    switch ($choice) {
-        case '1':
-            $backupFile = $targetConfigFile . '.backup.' . date('Y-m-d_H-i-s');
-            if (copy($targetConfigFile, $backupFile)) {
-                echo "✅ Existing config backed up to: $backupFile\n";
-            } else {
-                echo "❌ Failed to create backup. Aborting.\n";
-                exit(1);
-            }
-            break;
-        case '2':
-            echo "⚠️  Overwriting existing configuration file...\n";
-            break;
-        case '3':
-            echo "✅ Installation skipped.\n";
-            exit(0);
-        default:
-            echo "❌ Invalid choice. Aborting.\n";
-            exit(1);
-    }
-}
-
-// Read source configuration
-$sourceConfig = file_get_contents($sourceConfigFile);
-if ($sourceConfig === false) {
-    echo "❌ Error: Unable to read source configuration file.\n";
-    exit(1);
-}
-
-// Convert standalone config to Laravel config
-$laravelConfig = convertToLaravelConfig($sourceConfig);
-
-// Ensure config directory exists
-if (!is_dir($configDir)) {
-    if (!mkdir($configDir, 0755, true)) {
-        echo "❌ Error: Unable to create config directory.\n";
-        exit(1);
-    }
-}
-
-// Write Laravel configuration file
-if (file_put_contents($targetConfigFile, $laravelConfig) === false) {
-    echo "❌ Error: Unable to write configuration file.\n";
-    exit(1);
-}
-
-echo "✅ Configuration file installed successfully!\n";
-echo "📁 Location: $targetConfigFile\n\n";
-
-// Test the configuration
-echo "🧪 Testing configuration...\n";
-try {
-    $configLoader = new ConfigurationLoader();
-    $config = $configLoader->getConfiguration();
-    $configInfo = $configLoader->getConfigurationInfo();
-    
-    echo "✅ Configuration test successful!\n";
-    echo "📊 Environment: {$configInfo['environment']}\n";
-    echo "📁 Config File: {$configInfo['config_file']}\n";
-    echo "🔧 Scan Paths: " . count($config['scan_paths']) . " configured\n";
-    echo "🔍 Rules: " . count($config['rules']) . " configured\n\n";
-    
-} catch (Exception $e) {
-    echo "⚠️  Configuration test failed: " . $e->getMessage() . "\n";
-    echo "Please check the configuration file manually.\n\n";
-}
-
-echo "📚 Next Steps:\n";
-echo "--------------\n";
-echo "1. Review the configuration at: $targetConfigFile\n";
-echo "2. Customize settings as needed for your project\n";
-echo "3. Add environment variables to your .env file if desired\n";
-echo "4. Run the review system: php review-system/cli.php\n\n";
-
-echo "🔧 Environment Variables (Optional):\n";
-echo "------------------------------------\n";
-echo "Add these to your .env file for customization:\n\n";
-
-$envExamples = [
-    'REVIEW_ENABLE_CACHING=true',
-    'REVIEW_LOG_LEVEL=info',
-    'REVIEW_EXIT_ON_VIOLATION=true',
-    'REVIEW_HTML_TITLE="My Project Code Review"',
-    'REVIEW_MAX_FILE_SIZE=10485760',
-    'REVIEW_CACHE_EXPIRY_TIME=3600',
-    'REVIEW_USE_FILE_MOD_TIME=true',
-    'REVIEW_VALIDATE_CONFIG=true',
-    'REVIEW_PERFORMANCE_MONITORING=true',
-    'REVIEW_LOGGING_ENABLED=true',
-];
-
-foreach ($envExamples as $envVar) {
-    echo "   $envVar\n";
-}
-
-echo "\n✅ Installation completed successfully!\n";
 
 /**
  * Convert standalone configuration to Laravel configuration
@@ -162,7 +16,7 @@ echo "\n✅ Installation completed successfully!\n";
 function convertToLaravelConfig(string $standaloneConfig): string
 {
     $projectRoot = dirname(__DIR__);
-    
+
     // Replace standalone paths with Laravel paths
     $laravelConfig = str_replace(
         [
@@ -229,4 +83,138 @@ PHP;
     );
 
     return $laravelConfig;
-} 
+}
+
+// Main execution function
+function main(): void
+{
+    echo "🔧 Review System Configuration Installer\n";
+    echo "========================================\n\n";
+
+    // Check if we're in a Laravel environment
+    $projectRoot = dirname(__DIR__);
+    $artisanFile = $projectRoot . '/artisan';
+    $configDir = $projectRoot . '/config';
+
+    if (!file_exists($artisanFile)) {
+        echo "❌ Error: This script must be run from within a Laravel application.\n";
+        echo "Please run this script from your Laravel project root directory.\n";
+        echo "Expected artisan file at: $artisanFile\n\n";
+        exit(1);
+    }
+
+    echo "✅ Laravel application detected at: $projectRoot\n";
+    $targetConfigFile = $configDir . '/review-system.php';
+    $sourceConfigFile = __DIR__ . '/config.php';
+
+    echo "📋 Installation Information:\n";
+    echo "----------------------------\n";
+    echo "Source Config: $sourceConfigFile\n";
+    echo "Target Config: $targetConfigFile\n";
+    echo "Config Directory: $configDir\n\n";
+
+    // Check if source config exists
+    if (!file_exists($sourceConfigFile)) {
+        echo "❌ Error: Source configuration file not found.\n";
+        echo "Please ensure the review-system is properly installed.\n\n";
+        exit(1);
+    }
+
+    // Check if target config already exists
+    if (file_exists($targetConfigFile)) {
+        echo "⚠️  Warning: Configuration file already exists at:\n";
+        echo "   $targetConfigFile\n\n";
+
+        echo "Options:\n";
+        echo "1. Backup existing and install new (recommended)\n";
+        echo "2. Overwrite existing file\n";
+        echo "3. Skip installation\n\n";
+
+        echo "Enter your choice (1-3): ";
+        $handle = fopen("php://stdin", "r");
+        $choice = trim(fgets($handle));
+        fclose($handle);
+
+        switch ($choice) {
+            case '1':
+                $backupFile = $targetConfigFile . '.backup.' . date('Y-m-d_H-i-s');
+                if (copy($targetConfigFile, $backupFile)) {
+                    echo "✅ Existing config backed up to: $backupFile\n";
+                } else {
+                    echo "❌ Failed to create backup. Aborting.\n";
+                    exit(1);
+                }
+                break;
+            case '2':
+                echo "⚠️  Overwriting existing configuration file...\n";
+                break;
+            case '3':
+                echo "✅ Installation skipped.\n";
+                exit(0);
+            default:
+                echo "❌ Invalid choice. Aborting.\n";
+                exit(1);
+        }
+    }
+
+    // Read source configuration
+    $sourceConfig = file_get_contents($sourceConfigFile);
+    if ($sourceConfig === false) {
+        echo "❌ Error: Unable to read source configuration file.\n";
+        exit(1);
+    }
+
+    // Convert standalone config to Laravel config
+    $laravelConfig = convertToLaravelConfig($sourceConfig);
+
+    // Ensure config directory exists
+    if (!is_dir($configDir)) {
+        if (!mkdir($configDir, 0755, true)) {
+            echo "❌ Error: Unable to create config directory.\n";
+            exit(1);
+        }
+    }
+
+    // Write the Laravel configuration file
+    if (file_put_contents($targetConfigFile, $laravelConfig) === false) {
+        echo "❌ Error: Unable to write configuration file.\n";
+        exit(1);
+    }
+
+    echo "✅ Configuration file installed successfully!\n";
+    echo "📁 Location: $targetConfigFile\n\n";
+
+    echo "🚀 Next Steps:\n";
+    echo "==============\n";
+    echo "1. Review the configuration file: $targetConfigFile\n";
+    echo "2. Customize settings as needed\n";
+    echo "3. Test the review system: php review-system/cli.php --quick\n";
+    echo "4. Run the review system: php review-system/cli.php\n\n";
+
+    echo "🔧 Environment Variables (Optional):\n";
+    echo "------------------------------------\n";
+    echo "Add these to your .env file for customization:\n\n";
+
+    $envExamples = [
+        'REVIEW_ENABLE_CACHING=true',
+        'REVIEW_LOG_LEVEL=info',
+        'REVIEW_EXIT_ON_VIOLATION=true',
+        'REVIEW_HTML_TITLE="My Project Code Review"',
+        'REVIEW_MAX_FILE_SIZE=10485760',
+        'REVIEW_CACHE_EXPIRY_TIME=3600',
+        'REVIEW_USE_FILE_MOD_TIME=true',
+        'REVIEW_VALIDATE_CONFIG=true',
+        'REVIEW_PERFORMANCE_MONITORING=true',
+        'REVIEW_LOGGING_ENABLED=true',
+    ];
+
+    foreach ($envExamples as $envVar) {
+        echo "   $envVar\n";
+    }
+
+    echo "\n✅ Installation completed successfully!\n";
+}
+
+// Load autoloader and execute main function
+require_once __DIR__ . '/../vendor/autoload.php';
+main();

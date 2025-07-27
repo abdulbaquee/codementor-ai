@@ -23,26 +23,26 @@ class ConfigurationLoader
         $artisanFile = $projectRoot . '/artisan';
         $appDir = $projectRoot . '/app';
         $configDir = $projectRoot . '/config';
-        
+
         // Check for Laravel structure
-        $hasLaravelStructure = file_exists($artisanFile) && 
-                              is_dir($appDir) && 
+        $hasLaravelStructure = file_exists($artisanFile) &&
+                              is_dir($appDir) &&
                               is_dir($configDir);
-        
+
         if (!$hasLaravelStructure) {
             return false;
         }
-        
+
         // If we have Laravel structure, also check if Laravel functions are available
         if (function_exists('app_path') && function_exists('base_path') && function_exists('storage_path')) {
             try {
                 $appPath = app_path();
                 $basePath = base_path();
                 $storagePath = storage_path();
-                
+
                 // Verify the functions return the expected paths
-                return is_dir($appPath) && 
-                       is_dir($basePath) && 
+                return is_dir($appPath) &&
+                       is_dir($basePath) &&
                        is_dir($storagePath) &&
                        file_exists($basePath . '/artisan');
             } catch (\Throwable $e) {
@@ -50,7 +50,7 @@ class ConfigurationLoader
                 return true;
             }
         }
-        
+
         // If we have Laravel structure but no functions, still consider it Laravel
         return true;
     }
@@ -68,7 +68,7 @@ class ConfigurationLoader
 
         // Apply environment overrides
         $this->applyEnvironmentOverrides();
-        
+
         // Validate and normalize configuration
         $this->normalizeConfiguration();
     }
@@ -91,7 +91,7 @@ class ConfigurationLoader
                     $this->config = require $configFile;
                 }
             }
-            
+
             // If still empty, fall back to standalone configuration
             if (empty($this->config)) {
                 $this->loadStandaloneConfiguration();
@@ -102,7 +102,7 @@ class ConfigurationLoader
             $this->loadStandaloneConfiguration();
         }
     }
-    
+
     /**
      * Get the path to Laravel config file
      */
@@ -112,7 +112,7 @@ class ConfigurationLoader
         if (function_exists('base_path')) {
             return base_path('config/codementor-ai.php');
         }
-        
+
         // Fallback: construct path manually
         $projectRoot = dirname(__DIR__, 2); // Go up two levels from codementor-ai/engine/
         return $projectRoot . '/config/codementor-ai.php';
@@ -175,7 +175,8 @@ class ConfigurationLoader
 
         // Override validation settings
         if ($validateConfig = getenv('REVIEW_VALIDATE_CONFIG')) {
-            $this->config['validation']['enable_config_validation'] = filter_var($validateConfig, FILTER_VALIDATE_BOOLEAN);
+            $this->config['validation']['enable_config_validation'] =
+                filter_var($validateConfig, FILTER_VALIDATE_BOOLEAN);
         }
 
         if ($strictValidation = getenv('REVIEW_STRICT_VALIDATION')) {
@@ -198,7 +199,7 @@ class ConfigurationLoader
     private function normalizeConfiguration(): void
     {
         $defaults = $this->getDefaultConfiguration();
-        
+
         // Merge with defaults to ensure all keys exist
         $this->config = array_replace_recursive($defaults, $this->config);
 
@@ -234,7 +235,10 @@ class ConfigurationLoader
         }
 
         // Normalize cache file path
-        if (isset($this->config['file_scanner']['cache_file']) && is_string($this->config['file_scanner']['cache_file'])) {
+        if (
+            isset($this->config['file_scanner']['cache_file']) &&
+            is_string($this->config['file_scanner']['cache_file'])
+        ) {
             $cacheFile = $this->config['file_scanner']['cache_file'];
             if (!is_absolute_path($cacheFile)) {
                 $this->config['file_scanner']['cache_file'] = $this->resolvePath($cacheFile);
@@ -242,7 +246,10 @@ class ConfigurationLoader
         }
 
         // Normalize output path
-        if (isset($this->config['reporting']['output_path']) && is_string($this->config['reporting']['output_path'])) {
+        if (
+            isset($this->config['reporting']['output_path']) &&
+            is_string($this->config['reporting']['output_path'])
+        ) {
             $outputPath = $this->config['reporting']['output_path'];
             if (!is_absolute_path($outputPath)) {
                 $this->config['reporting']['output_path'] = $this->resolvePath($outputPath);
@@ -250,7 +257,10 @@ class ConfigurationLoader
         }
 
         // Normalize log file path
-        if (isset($this->config['logging']['file']) && is_string($this->config['logging']['file'])) {
+        if (
+            isset($this->config['logging']['file']) &&
+            is_string($this->config['logging']['file'])
+        ) {
             $logFile = $this->config['logging']['file'];
             if (!is_absolute_path($logFile)) {
                 $this->config['logging']['file'] = $this->resolvePath($logFile);
@@ -400,9 +410,9 @@ class ConfigurationLoader
     {
         // Get project root path
         $projectRoot = dirname(__DIR__, 2); // Go up two levels from codementor-ai/engine/
-        
+
         // Helper function to safely get Laravel paths
-        $getLaravelPath = function($path) {
+        $getLaravelPath = function ($path) {
             if ($this->isLaravelEnvironment && function_exists($path)) {
                 try {
                     return $path();
@@ -412,7 +422,7 @@ class ConfigurationLoader
             }
             return null;
         };
-        
+
         // Determine scan paths
         $appPath = $getLaravelPath('app_path') ?: realpath($projectRoot . '/app');
         $routesPath = null;
@@ -425,12 +435,12 @@ class ConfigurationLoader
         } else {
             $routesPath = realpath($projectRoot . '/routes');
         }
-        
+
         // Determine cache and output paths
         $cachePath = null;
         $outputPath = null;
         $logPath = null;
-        
+
         if ($this->isLaravelEnvironment && function_exists('storage_path')) {
             try {
                 $cachePath = storage_path('codementor-ai/cache/file_scanner_cache.json');
@@ -447,7 +457,7 @@ class ConfigurationLoader
             $outputPath = __DIR__ . '/../reports';
             $logPath = __DIR__ . '/../logs/codementor-ai.log';
         }
-        
+
         return [
             'scan_paths' => [
                 $appPath,
@@ -647,4 +657,4 @@ if (!function_exists('array_collapse')) {
 
         return $results;
     }
-} 
+}

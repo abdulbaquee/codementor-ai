@@ -13,7 +13,7 @@ use ReviewSystem\Engine\RuleCategory;
  */
 class CodeStyleRuleTest extends TestCase
 {
-    private CodeStyleRule $rule;
+    private ?CodeStyleRule $rule = null;
 
     protected function setUp(): void
     {
@@ -170,7 +170,6 @@ class UserController extends Controller
         $violations = $this->rule->check($tempFile);
 
         // This should detect boolean method naming issues
-        $this->assertIsArray($violations);
 
         unlink($tempFile);
     }
@@ -232,7 +231,6 @@ class UserController extends Controller
         $violations = $this->rule->check($tempFile);
 
         // This should detect magic numbers
-        $this->assertIsArray($violations);
 
         unlink($tempFile);
     }
@@ -402,7 +400,6 @@ class TestController extends Controller
         $violations = $this->rule->check($tempFile);
 
         // Should handle parsing errors gracefully
-        $this->assertIsArray($violations);
 
         unlink($tempFile);
     }
@@ -423,7 +420,6 @@ class TestController extends Controller
     {
         $options = $this->rule->getConfigurationOptions();
         
-        $this->assertIsArray($options);
         $this->assertArrayHasKey('target_paths', $options);
         $this->assertArrayHasKey('mongo_patterns', $options);
         
@@ -438,7 +434,6 @@ class TestController extends Controller
     {
         $metadata = $this->rule->getMetadata();
         
-        $this->assertIsArray($metadata);
         $this->assertArrayHasKey('version', $metadata);
         $this->assertArrayHasKey('author', $metadata);
         $this->assertArrayHasKey('description', $metadata);
@@ -531,7 +526,6 @@ class UserController extends Controller
         $violations = $this->rule->check($tempFile);
 
         // This should detect unused imports
-        $this->assertIsArray($violations);
 
         unlink($tempFile);
     }

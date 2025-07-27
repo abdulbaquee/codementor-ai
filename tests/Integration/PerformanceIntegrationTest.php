@@ -14,7 +14,7 @@ use ReviewSystem\Engine\PerformanceOptimizedRule;
  */
 class PerformanceIntegrationTest extends TestCase
 {
-    private string $testDir;
+    private string $testDir = '';
     private array $performanceResults = [];
 
     protected function setUp(): void

@@ -7,7 +7,7 @@ use ReviewSystem\Engine\ConfigurationLoader;
 
 /**
  * AI-Powered Rule Optimizer
- * 
+ *
  * Uses machine learning to:
  * - Learn from code patterns
  * - Optimize rule sensitivity
@@ -59,7 +59,7 @@ class AIRuleOptimizer
 
         foreach ($rulePatterns as $pattern) {
             $acceptanceRate = $this->calculateAcceptanceRate($pattern);
-            
+
             if ($acceptanceRate < 0.3) {
                 // High false positive rate - increase sensitivity
                 $optimizedSettings[$pattern] = [
@@ -292,8 +292,8 @@ class AIRuleOptimizer
 
     private function findSimilarCases(array $violation): array
     {
-        return array_filter($this->learningData, function($data) use ($violation) {
-            return $data['category'] === $violation['category'] && 
+        return array_filter($this->learningData, function ($data) use ($violation) {
+            return $data['category'] === $violation['category'] &&
                    $data['severity'] === $violation['severity'];
         });
     }
@@ -389,4 +389,4 @@ class AIRuleOptimizer
             'team_efficiency_gain' => 0.10
         ];
     }
-} 
+}

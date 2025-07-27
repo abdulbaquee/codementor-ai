@@ -56,11 +56,11 @@ class ReportWriter
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>' . htmlspecialchars($title) . '</title>';
-        
+
         if ($includeCss) {
             $html .= '<link rel="stylesheet" href="' . htmlspecialchars($cssPath) . '">';
         }
-        
+
         $html .= '<style>
             .filter-controls {
                 background: #f8f9fa;
@@ -167,23 +167,24 @@ class ReportWriter
                 font-weight: bold;
             }
         </style>';
-        
+
         $html .= '</head>
 <body>
     <div class="container">
         <h1>' . htmlspecialchars($title) . '</h1>';
-        
+
         if ($showTimestamp || $showViolationCount) {
             $html .= '<div class="report-meta">';
-            
+
             if ($showTimestamp) {
                 $html .= '<p>Generated on: ' . date('Y-m-d H:i:s') . '</p>';
             }
-            
+
             if ($showViolationCount) {
-                $html .= '<p>Total violations found: <span class="violations-count">' . count($violations) . '</span></p>';
+                $html .= '<p>Total violations found: <span class="violations-count">' .
+                count($violations) . '</span></p>';
             }
-            
+
             $html .= '</div>';
         }
 
@@ -194,10 +195,10 @@ class ReportWriter
             if ($enableFiltering) {
                 $html .= $this->generateFilterControls($violations);
             }
-            
+
             // Add statistics summary
             $html .= $this->generateStatisticsSummary($violations);
-            
+
             // Generate violations table
             $html .= $this->generateViolationsTable($violations);
         }
@@ -236,12 +237,13 @@ class ReportWriter
                 <label for="severity-filter">Severity:</label>
                 <select id="severity-filter">
                     <option value="">All Severities</option>';
-        
+
         foreach ($severities as $severity) {
             $displayName = ucfirst($severity);
-            $html .= '<option value="' . htmlspecialchars($severity) . '">' . htmlspecialchars($displayName) . '</option>';
+            $html .= '<option value="' . htmlspecialchars($severity) . '">' .
+                htmlspecialchars($displayName) . '</option>';
         }
-        
+
         $html .= '</select>
             </div>
             
@@ -249,12 +251,13 @@ class ReportWriter
                 <label for="category-filter">Category:</label>
                 <select id="category-filter">
                     <option value="">All Categories</option>';
-        
+
         foreach ($categories as $category) {
             $displayName = ucfirst(str_replace('_', ' ', $category));
-            $html .= '<option value="' . htmlspecialchars($category) . '">' . htmlspecialchars($displayName) . '</option>';
+            $html .= '<option value="' . htmlspecialchars($category) . '">' .
+                htmlspecialchars($displayName) . '</option>';
         }
-        
+
         $html .= '</select>
             </div>
             
@@ -262,11 +265,11 @@ class ReportWriter
                 <label for="tag-filter">Tag:</label>
                 <select id="tag-filter">
                     <option value="">All Tags</option>';
-        
+
         foreach ($tags as $tag) {
             $html .= '<option value="' . htmlspecialchars($tag) . '">' . htmlspecialchars($tag) . '</option>';
         }
-        
+
         $html .= '</select>
             </div>
             
@@ -274,12 +277,12 @@ class ReportWriter
                 <label for="file-filter">File:</label>
                 <select id="file-filter">
                     <option value="">All Files</option>';
-        
+
         foreach ($files as $file) {
             $shortName = basename($file);
             $html .= '<option value="' . htmlspecialchars($file) . '">' . htmlspecialchars($shortName) . '</option>';
         }
-        
+
         $html .= '</select>
             </div>
             
@@ -308,16 +311,17 @@ class ReportWriter
         $totalViolations = count($violations);
         $severityCounts = array_count_values(array_column($violations, 'severity'));
         $categoryCounts = array_count_values(array_column($violations, 'category'));
-        
+
         $html = '<div class="stats-summary">
             <strong>📊 Summary:</strong>
             <span>Total: <span class="count">' . $totalViolations . '</span></span>';
-        
+
         foreach ($severityCounts as $severity => $count) {
             $severityClass = 'severity-' . $severity;
-            $html .= '<span>' . ucfirst($severity) . ': <span class="count ' . $severityClass . '">' . $count . '</span></span>';
+            $html .= '<span>' . ucfirst($severity) . ': <span class="count ' . $severityClass . '">' .
+                $count . '</span></span>';
         }
-        
+
         $html .= '<span>Categories: <span class="count">' . count($categoryCounts) . '</span></span>
         </div>';
 
@@ -339,11 +343,11 @@ class ReportWriter
         $html = '<table id="violations-table">
             <thead>
                 <tr>';
-        
+
         foreach ($tableColumns as $column) {
             $html .= '<th>' . htmlspecialchars($column) . '</th>';
         }
-        
+
         $html .= '</tr>
             </thead>
             <tbody>';
@@ -352,14 +356,14 @@ class ReportWriter
             $severity = $violation['severity'] ?? 'warning';
             $category = $violation['category'] ?? 'general';
             $tags = $violation['tags'] ?? [];
-            
+
             $html .= '<tr class="violation-row severity-' . htmlspecialchars($severity) . '" 
                            data-severity="' . htmlspecialchars($severity) . '"
                            data-category="' . htmlspecialchars($category) . '"
                            data-tags="' . htmlspecialchars(implode(',', $tags)) . '"
                            data-file="' . htmlspecialchars($violation['file'] ?? '') . '"
                            data-message="' . htmlspecialchars($violation['message'] ?? '') . '">';
-            
+
             // Map violation data to table columns
             $columnData = [
                 'file_path' => $this->formatFilePath($violation['file'] ?? 'N/A'),
@@ -367,12 +371,12 @@ class ReportWriter
                 'bad_code' => $violation['bad'] ?? 'N/A',
                 'suggested_fix' => $violation['good'] ?? 'N/A',
             ];
-            
+
             foreach ($columnData as $key => $value) {
                 $cssClass = str_replace('_', '-', $key);
                 $html .= '<td class="' . $cssClass . '">' . $value . '</td>';
             }
-            
+
             $html .= '</tr>';
         }
 
@@ -396,20 +400,20 @@ class ReportWriter
     private function formatMessage(string $message, string $severity, string $category, array $tags): string
     {
         $html = htmlspecialchars($message);
-        
+
         // Add severity badge
         $severityClass = 'btn-' . $severity;
         $html .= '<br><span class="category-badge ' . $severityClass . '">' . ucfirst($severity) . '</span>';
-        
+
         // Add category badge
         $categoryDisplay = ucfirst(str_replace('_', ' ', $category));
         $html .= '<span class="category-badge btn-info">' . htmlspecialchars($categoryDisplay) . '</span>';
-        
+
         // Add tag badges
         foreach ($tags as $tag) {
             $html .= '<span class="tag-badge">' . htmlspecialchars($tag) . '</span>';
         }
-        
+
         return $html;
     }
 
@@ -563,10 +567,10 @@ class ReportWriter
     {
         // Load config for backward compatibility
         $config = require __DIR__ . '/../config.php';
-        
+
         // Create instance with injected config
         $writer = new self($config);
-        
+
         return $writer->writeHtml($violations);
     }
 

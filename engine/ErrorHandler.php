@@ -4,7 +4,7 @@ namespace ReviewSystem\Engine;
 
 /**
  * Comprehensive error handling system for the review system
- * 
+ *
  * This class provides:
  * - Detailed error messages with context
  * - Graceful handling of edge cases
@@ -15,10 +15,10 @@ class ErrorHandler
 {
     /** @var array Collected errors */
     private static $errors = [];
-    
+
     /** @var array Collected warnings */
     private static $warnings = [];
-    
+
     /** @var array Error categories */
     public const ERROR_CATEGORIES = [
         'PARSING' => 'PHP parsing errors',
@@ -43,9 +43,9 @@ class ErrorHandler
             'severity' => 'error',
             'recoverable' => false
         ];
-        
+
         self::$errors[] = $errorInfo;
-        
+
         return [
             'file' => $filePath,
             'line' => 1,
@@ -70,9 +70,9 @@ class ErrorHandler
             'severity' => 'warning',
             'recoverable' => true
         ];
-        
+
         self::$warnings[] = $errorInfo;
-        
+
         return [
             'file' => $filePath,
             'line' => 1,
@@ -97,9 +97,9 @@ class ErrorHandler
             'severity' => 'error',
             'recoverable' => false
         ];
-        
+
         self::$errors[] = $errorInfo;
-        
+
         return [
             'file' => $filePath,
             'line' => 1,
@@ -124,9 +124,9 @@ class ErrorHandler
             'severity' => 'error',
             'recoverable' => true
         ];
-        
+
         self::$errors[] = $errorInfo;
-        
+
         return [
             'file' => $filePath,
             'line' => 1,
@@ -151,9 +151,9 @@ class ErrorHandler
             'severity' => 'warning',
             'recoverable' => true
         ];
-        
+
         self::$warnings[] = $errorInfo;
-        
+
         return [
             'file' => $filePath,
             'line' => 1,
@@ -171,7 +171,7 @@ class ErrorHandler
     private static function formatParsingErrorMessage(\Throwable $error): string
     {
         $message = $error->getMessage();
-        
+
         // Add context for common parsing errors
         if (str_contains($message, 'syntax error')) {
             $message .= ' - Check for missing semicolons, brackets, or quotes';
@@ -180,7 +180,7 @@ class ErrorHandler
         } elseif (str_contains($message, 'unterminated')) {
             $message .= ' - Check for unclosed strings, comments, or blocks';
         }
-        
+
         return $message;
     }
 
@@ -190,7 +190,7 @@ class ErrorHandler
     private static function getParsingErrorSuggestion(\Throwable $error): string
     {
         $message = $error->getMessage();
-        
+
         if (str_contains($message, 'syntax error')) {
             return 'Use a PHP syntax checker or IDE to identify and fix syntax errors';
         } elseif (str_contains($message, 'unexpected')) {
@@ -198,7 +198,7 @@ class ErrorHandler
         } elseif (str_contains($message, 'unterminated')) {
             return 'Check for unclosed quotes, comments, or code blocks';
         }
-        
+
         return 'Review the PHP syntax and ensure the file is valid PHP code';
     }
 
@@ -237,14 +237,14 @@ class ErrorHandler
             'total_warnings' => count(self::$warnings),
             'categories' => []
         ];
-        
+
         foreach (self::ERROR_CATEGORIES as $category => $description) {
             $stats['categories'][$category] = [
                 'description' => $description,
                 'count' => 0
             ];
         }
-        
+
         // Count errors by category
         foreach (self::$errors as $error) {
             $category = $error['type'];
@@ -252,7 +252,7 @@ class ErrorHandler
                 $stats['categories'][$category]['count']++;
             }
         }
-        
+
         return $stats;
     }
 
@@ -289,25 +289,25 @@ class ErrorHandler
     private static function generateSuggestions(): array
     {
         $suggestions = [];
-        
+
         $errorCounts = [];
         foreach (self::$errors as $error) {
             $type = $error['type'];
             $errorCounts[$type] = ($errorCounts[$type] ?? 0) + 1;
         }
-        
-        if (isset($errorCounts['PARSING']) && $errorCounts['PARSING'] > 0) {
+
+        if (isset($errorCounts['PARSING'])) {
             $suggestions[] = 'Consider adding syntax validation before rule processing';
         }
-        
-        if (isset($errorCounts['MEMORY']) && $errorCounts['MEMORY'] > 0) {
+
+        if (isset($errorCounts['MEMORY'])) {
             $suggestions[] = 'Implement chunked processing for large files';
         }
-        
-        if (isset($errorCounts['PERFORMANCE']) && $errorCounts['PERFORMANCE'] > 0) {
+
+        if (isset($errorCounts['PERFORMANCE'])) {
             $suggestions[] = 'Enable AST caching and optimize rule implementations';
         }
-        
+
         return $suggestions;
     }
-} 
+}

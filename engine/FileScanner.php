@@ -21,7 +21,7 @@ class FileScanner
         $this->cacheFile = $config['cache_file'] ?? __DIR__ . '/../cache/file_scanner_cache.json';
         $this->cacheExpiryTime = $config['cache_expiry_time'] ?? 3600; // 1 hour default
         $this->useFileModTime = $config['use_file_mod_time'] ?? true; // Use file modification time by default
-        
+
         if ($this->enableCaching) {
             $this->loadCache();
         }
@@ -136,10 +136,12 @@ class FileScanner
 
         // Skip vendor and cache directories
         $path = $file->getPathname();
-        if (str_contains($path, '/vendor/') || 
-            str_contains($path, '/cache/') || 
+        if (
+            str_contains($path, '/vendor/') ||
+            str_contains($path, '/cache/') ||
             str_contains($path, '/storage/') ||
-            str_contains($path, '/node_modules/')) {
+            str_contains($path, '/node_modules/')
+        ) {
             return false;
         }
 
@@ -156,7 +158,7 @@ class FileScanner
         }
 
         $fileSize = filesize($filePath);
-        
+
         // For small files, use file_get_contents (faster)
         if ($fileSize < 1024 * 1024) { // 1MB
             return file_get_contents($filePath) ?: '';
@@ -251,7 +253,7 @@ class FileScanner
     {
         foreach ($paths as $path) {
             $pathHash = md5($path);
-            $pathFiles = array_filter($files, function($file) use ($path) {
+            $pathFiles = array_filter($files, function ($file) use ($path) {
                 return strpos($file, $path) === 0;
             });
 
@@ -276,7 +278,7 @@ class FileScanner
 
         $cacheEntry = $this->cache[$pathHash];
         $cacheAge = time() - $cacheEntry['timestamp'];
-        
+
         // Check time-based expiry first
         if ($cacheAge >= $this->cacheExpiryTime) {
             return false;

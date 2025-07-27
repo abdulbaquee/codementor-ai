@@ -16,7 +16,6 @@ use PhpParser\Node\Expr\BinaryOp\Concat;
 
 class CodeStyleRule extends PerformanceOptimizedRule
 {
-
     public function getCategory(): string
     {
         return RuleCategory::STYLE;
@@ -72,12 +71,12 @@ class CodeStyleRule extends PerformanceOptimizedRule
     {
         $violations = [];
         $nodeFinder = $this->getNodeFinder();
-        
+
         // Check class naming
         $classes = $nodeFinder->findInstanceOf($ast, Class_::class);
         foreach ($classes as $class) {
             $className = $class->name->toString();
-            
+
             // Check for proper PascalCase
             if (!preg_match('/^[A-Z][a-zA-Z0-9]*$/', $className)) {
                 $violations[] = [
@@ -90,7 +89,7 @@ class CodeStyleRule extends PerformanceOptimizedRule
                     'category' => 'naming'
                 ];
             }
-            
+
             // Check for descriptive names
             if (strlen($className) < 3) {
                 $violations[] = [
@@ -109,7 +108,7 @@ class CodeStyleRule extends PerformanceOptimizedRule
         $methods = $nodeFinder->findInstanceOf($ast, ClassMethod::class);
         foreach ($methods as $method) {
             $methodName = $method->name->toString();
-            
+
             // Check for proper camelCase
             if (!preg_match('/^[a-z][a-zA-Z0-9]*$/', $methodName)) {
                 $violations[] = [
@@ -122,7 +121,7 @@ class CodeStyleRule extends PerformanceOptimizedRule
                     'category' => 'naming'
                 ];
             }
-            
+
             // Check for boolean method naming
             if ($this->isBooleanMethod($method) && !$this->hasBooleanPrefix($methodName)) {
                 $violations[] = [
@@ -144,7 +143,7 @@ class CodeStyleRule extends PerformanceOptimizedRule
     {
         $violations = [];
         $nodeFinder = $this->getNodeFinder();
-        
+
         // Check for proper namespace usage
         $namespaces = $nodeFinder->findInstanceOf($ast, Namespace_::class);
         if (empty($namespaces)) {
@@ -164,7 +163,7 @@ class CodeStyleRule extends PerformanceOptimizedRule
         foreach ($uses as $use) {
             foreach ($use->uses as $useUse) {
                 $className = $useUse->name->toString();
-                
+
                 // Check for unused imports (simplified check)
                 if (!$this->isClassUsed($ast, $className)) {
                     $violations[] = [
@@ -187,24 +186,22 @@ class CodeStyleRule extends PerformanceOptimizedRule
     {
         $violations = [];
         $nodeFinder = $this->getNodeFinder();
-        
+
         // Check for magic numbers
-        $magicNumbers = $nodeFinder->find($ast, function(Node $node) {
-            return $node instanceof Node\Scalar\LNumber && 
-                   $node->value > 10 && 
-                   $node->value !== 1000; // Common threshold
-        });
+        $magicNumbers = $nodeFinder->findInstanceOf($ast, Node\Scalar\LNumber::class);
 
         foreach ($magicNumbers as $number) {
-            $violations[] = [
-                'file' => $filePath,
-                'line' => $number->getStartLine(),
-                'message' => 'Magic number detected: ' . $number->value,
-                'bad_code' => $number->value,
-                'suggested_fix' => 'Define as a named constant',
-                'severity' => 'info',
-                'category' => 'readability'
-            ];
+            if ($number->value > 10 && $number->value !== 1000) { // Common threshold
+                $violations[] = [
+                    'file' => $filePath,
+                    'line' => $number->getStartLine(),
+                    'message' => 'Magic number detected: ' . $number->value,
+                    'bad_code' => (string) $number->value,
+                    'suggested_fix' => 'Define as a named constant',
+                    'severity' => 'info',
+                    'category' => 'readability'
+                ];
+            }
         }
 
         // Check for long lines (simplified)
@@ -230,12 +227,12 @@ class CodeStyleRule extends PerformanceOptimizedRule
     {
         $violations = [];
         $nodeFinder = $this->getNodeFinder();
-        
+
         // Check for Laravel-specific naming conventions
         $classes = $nodeFinder->findInstanceOf($ast, Class_::class);
         foreach ($classes as $class) {
             $className = $class->name->toString();
-            
+
             // Check controller naming
             if (str_contains($className, 'Controller') && !str_ends_with($className, 'Controller')) {
                 $violations[] = [
@@ -248,7 +245,7 @@ class CodeStyleRule extends PerformanceOptimizedRule
                     'category' => 'conventions'
                 ];
             }
-            
+
             // Check model naming
             if (str_contains($className, 'Model') && !str_ends_with($className, 'Model')) {
                 $violations[] = [
@@ -272,18 +269,18 @@ class CodeStyleRule extends PerformanceOptimizedRule
         if ($method->returnType) {
             return $method->returnType->toString() === 'bool';
         }
-        
+
         // Check method name for boolean indicators
         $methodName = $method->name->toString();
-        return str_starts_with($methodName, 'is') || 
-               str_starts_with($methodName, 'has') || 
+        return str_starts_with($methodName, 'is') ||
+               str_starts_with($methodName, 'has') ||
                str_starts_with($methodName, 'can');
     }
 
     private function hasBooleanPrefix(string $methodName): bool
     {
-        return str_starts_with($methodName, 'is') || 
-               str_starts_with($methodName, 'has') || 
+        return str_starts_with($methodName, 'is') ||
+               str_starts_with($methodName, 'has') ||
                str_starts_with($methodName, 'can');
     }
 
@@ -292,7 +289,7 @@ class CodeStyleRule extends PerformanceOptimizedRule
         // Simplified check - in real implementation, you'd need more sophisticated analysis
         $code = $this->astToString($ast);
         $shortName = $this->getShortClassName($className);
-        
+
         return str_contains($code, $shortName) || str_contains($code, $className);
     }
 
@@ -307,4 +304,4 @@ class CodeStyleRule extends PerformanceOptimizedRule
         // Simplified AST to string conversion
         return 'ast_content';
     }
-} 
+}

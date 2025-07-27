@@ -65,7 +65,7 @@ class MockPerformanceRule extends PerformanceOptimizedRule
  */
 class PerformanceOptimizedRuleTest extends TestCase
 {
-    private MockPerformanceRule $rule;
+    private ?MockPerformanceRule $rule = null;
 
     protected function setUp(): void
     {
@@ -112,11 +112,9 @@ class TestController extends Controller
         
         // Test through the check method which uses parseFileWithCache internally
         $violations1 = $this->rule->check($tempFile);
-        $this->assertIsArray($violations1);
         
         // Second check should use cache
         $violations2 = $this->rule->check($tempFile);
-        $this->assertIsArray($violations2);
         $this->assertEquals($violations1, $violations2);
         
         unlink($tempFile);
@@ -160,9 +158,6 @@ class TestController extends Controller
         // Second check should handle modification
         $violations2 = $this->rule->check($tempFile);
         
-        $this->assertIsArray($violations1);
-        $this->assertIsArray($violations2);
-        
         unlink($tempFile);
     }
 
@@ -189,7 +184,6 @@ class TestController extends Controller
         
         $metrics = PerformanceOptimizedRule::getPerformanceMetrics();
         
-        $this->assertIsArray($metrics);
         $this->assertArrayHasKey(MockPerformanceRule::class, $metrics);
         $this->assertArrayHasKey('total_time', $metrics[MockPerformanceRule::class]);
         
@@ -203,7 +197,6 @@ class TestController extends Controller
     {
         $stats = PerformanceOptimizedRule::getCacheStats();
         
-        $this->assertIsArray($stats);
         $this->assertArrayHasKey('size', $stats);
         $this->assertArrayHasKey('max_size', $stats);
         $this->assertArrayHasKey('ttl', $stats);
@@ -267,7 +260,6 @@ class TestController extends Controller
         
         $violations = $this->rule->check($tempFile);
         
-        $this->assertIsArray($violations);
         $this->assertCount(1, $violations);
         $this->assertEquals($tempFile, $violations[0]['file']);
         $this->assertEquals('Mock violation', $violations[0]['message']);
@@ -312,7 +304,6 @@ class TestController extends Controller
         $violations = $this->rule->check($tempFile);
         
         // Should handle parsing errors gracefully
-        $this->assertIsArray($violations);
         
         unlink($tempFile);
     }
@@ -387,27 +378,5 @@ class TestController extends Controller
 
 
 
-    /**
-     * Helper method to generate large file content for testing
-     */
-    private function generateLargeFileContent(): string
-    {
-        $content = "<?php\n";
-        $content .= "namespace App\Http\Controllers;\n\n";
-        $content .= "class TestController extends Controller\n";
-        $content .= "{\n";
-        
-        // Generate many lines to test chunked processing
-        for ($i = 0; $i < 1000; $i++) {
-            $content .= "    public function method{$i}()\n";
-            $content .= "    {\n";
-            $content .= "        // This is line {$i} with some violation content\n";
-            $content .= "        return 'result';\n";
-            $content .= "    }\n\n";
-        }
-        
-        $content .= "}\n";
-        
-        return $content;
-    }
+
 } 

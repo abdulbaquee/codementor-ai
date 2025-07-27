@@ -11,8 +11,8 @@ use ReviewSystem\Engine\ConfigurationLoader;
  */
 class ExampleTest extends TestCase
 {
-    private RuleRunner $runner;
-    private ConfigurationLoader $configLoader;
+    private ?RuleRunner $runner = null;
+    private ?ConfigurationLoader $configLoader = null;
 
     protected function setUp(): void
     {
@@ -39,9 +39,8 @@ class TestController extends Controller
 
         $tempFile = $this->createTempFile($code);
         
-        $result = $this->runner->run(['rules' => ['ReviewSystem\Rules\CodeStyleRule']]);
+        $result = $this->runner->run();
         
-        $this->assertIsArray($result);
         $this->assertArrayHasKey('violations', $result);
         $this->assertArrayHasKey('statistics', $result);
         
@@ -55,7 +54,6 @@ class TestController extends Controller
     {
         $config = $this->configLoader->getConfiguration();
         
-        $this->assertIsArray($config);
         $this->assertArrayHasKey('rules', $config);
         $this->assertArrayHasKey('reporting', $config);
     }

@@ -18,7 +18,6 @@ use PhpParser\Node\Expr\MethodCall;
 
 class NoMongoInControllerRule extends PerformanceOptimizedRule
 {
-
     /**
      * Get the rule's category
      */
@@ -40,7 +39,8 @@ class NoMongoInControllerRule extends PerformanceOptimizedRule
      */
     public function getDescription(): string
     {
-        return 'Detects raw MongoDB access inside Laravel controllers and suggests using a Repository layer for better separation of concerns and maintainability.';
+        return 'Detects raw MongoDB access inside Laravel controllers and suggests using a Repository layer ' .
+            'for better separation of concerns and maintainability.';
     }
 
     /**
@@ -115,7 +115,7 @@ class NoMongoInControllerRule extends PerformanceOptimizedRule
     protected function performChecks(array $ast, string $filePath): array
     {
         $mongoUsage = $this->findMongoUsage($ast);
-        
+
         if (!empty($mongoUsage)) {
             return [$this->createViolation(
                 'Avoid raw MongoDB access inside controllers.',
@@ -144,31 +144,31 @@ class NoMongoInControllerRule extends PerformanceOptimizedRule
         $nodeFinder = $this->getNodeFinder();
 
         // 1. Check for MongoDB use statements
-        $mongoUses = $nodeFinder->find($ast, function(Node $node) {
+        $mongoUses = $nodeFinder->find($ast, function (Node $node) {
             return $node instanceof Use_ && $this->isMongoUse($node);
         });
         $mongoUsage = array_merge($mongoUsage, $mongoUses);
 
         // 2. Check for MongoDB class instantiation
-        $mongoNew = $nodeFinder->find($ast, function(Node $node) {
+        $mongoNew = $nodeFinder->find($ast, function (Node $node) {
             return $node instanceof New_ && $this->isMongoClass($node->class);
         });
         $mongoUsage = array_merge($mongoUsage, $mongoNew);
 
         // 3. Check for MongoDB static calls
-        $mongoStaticCalls = $nodeFinder->find($ast, function(Node $node) {
+        $mongoStaticCalls = $nodeFinder->find($ast, function (Node $node) {
             return $node instanceof StaticCall && $this->isMongoClass($node->class);
         });
         $mongoUsage = array_merge($mongoUsage, $mongoStaticCalls);
 
         // 4. Check for MongoDB method calls
-        $mongoMethodCalls = $nodeFinder->find($ast, function(Node $node) {
+        $mongoMethodCalls = $nodeFinder->find($ast, function (Node $node) {
             return $node instanceof MethodCall && $this->isMongoMethodCall($node);
         });
         $mongoUsage = array_merge($mongoUsage, $mongoMethodCalls);
 
         // 5. Check for MongoDB function calls
-        $mongoFuncCalls = $nodeFinder->find($ast, function(Node $node) {
+        $mongoFuncCalls = $nodeFinder->find($ast, function (Node $node) {
             return $node instanceof FuncCall && $this->isMongoFunction($node);
         });
         $mongoUsage = array_merge($mongoUsage, $mongoFuncCalls);
@@ -182,11 +182,9 @@ class NoMongoInControllerRule extends PerformanceOptimizedRule
     private function isMongoUse(Use_ $node): bool
     {
         foreach ($node->uses as $use) {
-            if ($use instanceof UseUse) {
-                $name = $use->name->toString();
-                if ($this->isMongoNamespace($name)) {
-                    return true;
-                }
+            $name = $use->name->toString();
+            if ($this->isMongoNamespace($name)) {
+                return true;
             }
         }
         return false;
@@ -283,23 +281,23 @@ class NoMongoInControllerRule extends PerformanceOptimizedRule
         if ($node instanceof Use_) {
             return 'use MongoDB\\Collection;';
         }
-        
+
         if ($node instanceof New_) {
             $className = $node->class instanceof Name ? $node->class->toString() : 'MongoDB\\Class';
             return "new {$className}()";
         }
-        
+
         if ($node instanceof StaticCall) {
             $class = $node->class instanceof Name ? $node->class->toString() : 'MongoDB\\Class';
             $method = $node->name->name ?? 'method';
             return "{$class}::{$method}()";
         }
-        
+
         if ($node instanceof MethodCall) {
             $method = $node->name->name ?? 'method';
             return "\$mongoObject->{$method}()";
         }
-        
+
         if ($node instanceof FuncCall) {
             $func = $node->name instanceof Name ? $node->name->toString() : 'mongodb_function';
             return "{$func}()";
@@ -346,7 +344,6 @@ class NoMongoInControllerRule extends PerformanceOptimizedRule
             }
 
             return $details;
-
         } catch (\Throwable $e) {
             return [['error' => $e->getMessage()]];
         }

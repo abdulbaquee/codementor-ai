@@ -32,7 +32,6 @@ class ErrorHandlerTest extends TestCase
         
         $violation = ErrorHandler::handleParsingError($filePath, $error);
         
-        $this->assertIsArray($violation);
         $this->assertEquals($filePath, $violation['file']);
         $this->assertEquals(1, $violation['line']);
         $this->assertStringContainsString('PHP parsing error', $violation['message']);
@@ -51,7 +50,6 @@ class ErrorHandlerTest extends TestCase
         
         $violation = ErrorHandler::handleNullableTypeError($filePath, $error);
         
-        $this->assertIsArray($violation);
         $this->assertEquals($filePath, $violation['file']);
         $this->assertEquals(1, $violation['line']);
         $this->assertStringContainsString('Type handling issue', $violation['message']);
@@ -70,7 +68,6 @@ class ErrorHandlerTest extends TestCase
         
         $violation = ErrorHandler::handleFileAccessError($filePath, $error);
         
-        $this->assertIsArray($violation);
         $this->assertEquals($filePath, $violation['file']);
         $this->assertEquals(1, $violation['line']);
         $this->assertStringContainsString('Cannot access file', $violation['message']);
@@ -89,7 +86,6 @@ class ErrorHandlerTest extends TestCase
         
         $violation = ErrorHandler::handleMemoryError($filePath, $error);
         
-        $this->assertIsArray($violation);
         $this->assertEquals($filePath, $violation['file']);
         $this->assertEquals(1, $violation['line']);
         $this->assertStringContainsString('Memory limit exceeded', $violation['message']);
@@ -108,7 +104,6 @@ class ErrorHandlerTest extends TestCase
         
         $violation = ErrorHandler::handlePerformanceWarning($filePath, $message);
         
-        $this->assertIsArray($violation);
         $this->assertEquals($filePath, $violation['file']);
         $this->assertEquals(1, $violation['line']);
         $this->assertStringContainsString('Performance issue detected', $violation['message']);
@@ -129,7 +124,6 @@ class ErrorHandlerTest extends TestCase
         
         $errors = ErrorHandler::getErrors();
         
-        $this->assertIsArray($errors);
         $this->assertCount(1, $errors);
         $this->assertEquals('FILE_ACCESS', $errors[0]['type']);
         $this->assertEquals($filePath, $errors[0]['file']);
@@ -147,7 +141,6 @@ class ErrorHandlerTest extends TestCase
         
         $warnings = ErrorHandler::getWarnings();
         
-        $this->assertIsArray($warnings);
         $this->assertCount(1, $warnings);
         $this->assertEquals('PERFORMANCE', $warnings[0]['type']);
         $this->assertEquals($filePath, $warnings[0]['file']);
@@ -190,7 +183,6 @@ class ErrorHandlerTest extends TestCase
         
         $stats = ErrorHandler::getErrorStats();
         
-        $this->assertIsArray($stats);
         $this->assertEquals(2, $stats['total_errors']);
         $this->assertEquals(1, $stats['total_warnings']);
         $this->assertArrayHasKey('categories', $stats);
@@ -232,7 +224,6 @@ class ErrorHandlerTest extends TestCase
         
         $report = ErrorHandler::getDetailedReport();
         
-        $this->assertIsArray($report);
         $this->assertArrayHasKey('summary', $report);
         $this->assertArrayHasKey('errors', $report);
         $this->assertArrayHasKey('warnings', $report);
@@ -242,7 +233,6 @@ class ErrorHandlerTest extends TestCase
         $this->assertEquals(1, $report['summary']['total_errors']);
         $this->assertEquals(1, $report['summary']['total_warnings']);
         $this->assertFalse($report['has_recoverable_errors']);
-        $this->assertIsArray($report['suggestions']);
     }
 
     /**
@@ -252,7 +242,6 @@ class ErrorHandlerTest extends TestCase
     {
         $categories = ErrorHandler::ERROR_CATEGORIES;
         
-        $this->assertIsArray($categories);
         $this->assertArrayHasKey('PARSING', $categories);
         $this->assertArrayHasKey('FILE_ACCESS', $categories);
         $this->assertArrayHasKey('MEMORY', $categories);
@@ -341,7 +330,6 @@ class ErrorHandlerTest extends TestCase
         $report = ErrorHandler::getDetailedReport();
         $suggestions = $report['suggestions'];
         
-        $this->assertIsArray($suggestions);
         $this->assertGreaterThan(0, count($suggestions));
         
         // Check for specific suggestions

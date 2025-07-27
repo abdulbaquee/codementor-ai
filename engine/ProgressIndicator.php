@@ -27,7 +27,7 @@ class ProgressIndicator
         $this->totalSteps = $totalSteps;
         $this->currentStep = 0;
         $this->lastProgress = 0;
-        
+
         echo "\n🚀 {$title}\n";
         if ($this->isInteractive) {
             $this->displayProgressBar();
@@ -42,11 +42,11 @@ class ProgressIndicator
     public function update(int $step, string $status = ''): void
     {
         $this->currentStep = $step;
-        
+
         if ($status) {
             $this->statusMessages[] = $status;
         }
-        
+
         if ($this->isInteractive) {
             $this->updateProgressBar($status);
         } else {
@@ -73,14 +73,14 @@ class ProgressIndicator
     public function complete(string $message = 'Completed'): void
     {
         $totalTime = microtime(true) - $this->startTime;
-        
+
         if ($this->isInteractive) {
             $this->completeProgressBar($message);
         } else {
             $percentage = $this->totalSteps > 0 ? round(($this->currentStep / $this->totalSteps) * 100) : 0;
             echo "Progress: {$this->currentStep}/{$this->totalSteps} ({$percentage}%) - {$message}\n";
         }
-        
+
         echo "⏱️  Total time: " . round($totalTime, 3) . "s\n\n";
     }
 
@@ -135,29 +135,29 @@ class ProgressIndicator
             return;
         }
 
-        $percentage = round(($this->currentStep / $this->totalSteps) * 100);
-        
+        $percentage = (int) round(($this->currentStep / $this->totalSteps) * 100);
+
         // Only update if percentage changed to avoid flickering
         if ($percentage === $this->lastProgress) {
             return;
         }
-        
+
         $this->lastProgress = $percentage;
-        
+
         $barWidth = min(50, $this->terminalWidth - 20);
-        $filledWidth = round(($percentage / 100) * $barWidth);
+        $filledWidth = (int) round(($percentage / 100) * $barWidth);
         $emptyWidth = $barWidth - $filledWidth;
-        
+
         $filled = str_repeat('█', $filledWidth);
         $empty = str_repeat('░', $emptyWidth);
-        
+
         $progressBar = "[{$filled}{$empty}]";
         $percentageText = " {$percentage}%";
-        
+
         // Calculate available space for status
         $usedSpace = strlen($progressBar) + strlen($percentageText) + 2; // +2 for padding
         $availableSpace = $this->terminalWidth - $usedSpace;
-        
+
         $statusText = '';
         if ($status && $availableSpace > 10) {
             $statusText = ' ' . substr($status, 0, $availableSpace - 3);
@@ -165,7 +165,7 @@ class ProgressIndicator
                 $statusText .= '...';
             }
         }
-        
+
         echo "\r{$progressBar}{$percentageText}{$statusText}";
     }
 
@@ -177,7 +177,7 @@ class ProgressIndicator
         $barWidth = min(50, $this->terminalWidth - 20);
         $filled = str_repeat('█', $barWidth);
         $progressBar = "[{$filled}]";
-        
+
         echo "\r{$progressBar} 100% - {$message}\n";
     }
 
@@ -190,7 +190,7 @@ class ProgressIndicator
         if (!posix_isatty(STDOUT)) {
             return false;
         }
-        
+
         // Check for common CI environments
         $ciEnvironments = ['CI', 'TRAVIS', 'CIRCLECI', 'JENKINS', 'GITHUB_ACTIONS'];
         foreach ($ciEnvironments as $env) {
@@ -198,7 +198,7 @@ class ProgressIndicator
                 return false;
             }
         }
-        
+
         return true;
     }
 
@@ -211,7 +211,7 @@ class ProgressIndicator
         if ($width = getenv('COLUMNS')) {
             return (int) $width;
         }
-        
+
         // Try to get from stty
         if (function_exists('exec')) {
             $output = [];
@@ -223,7 +223,7 @@ class ProgressIndicator
                 }
             }
         }
-        
+
         // Default fallback
         return 80;
     }
@@ -243,13 +243,13 @@ class ProgressIndicator
     {
         $totalTime = microtime(true) - $this->startTime;
         $rate = $this->totalSteps > 0 ? $this->totalSteps / $totalTime : 0;
-        
+
         echo "📊 Summary:\n";
         echo "   • Total steps: {$this->totalSteps}\n";
         echo "   • Completed: {$this->currentStep}\n";
         echo "   • Total time: " . round($totalTime, 3) . "s\n";
         echo "   • Rate: " . round($rate, 2) . " steps/second\n";
-        
+
         if (!empty($this->statusMessages)) {
             echo "   • Recent activity:\n";
             $recent = $this->getRecentStatusMessages(3);
@@ -258,4 +258,4 @@ class ProgressIndicator
             }
         }
     }
-} 
+}

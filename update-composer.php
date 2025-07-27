@@ -31,53 +31,53 @@ if (!isset($composer['scripts'])) {
         'review:validate' => 'php codementor-ai/validate-config.php',
     ];
 
-foreach ($reviewScripts as $script => $command) {
-    if (!isset($composer['scripts'][$script])) {
-        $composer['scripts'][$script] = $command;
+    foreach ($reviewScripts as $script => $command) {
+        if (!isset($composer['scripts'][$script])) {
+            $composer['scripts'][$script] = $command;
+        }
     }
-}
 
 // Add autoload-dev configuration
-if (!isset($composer['autoload-dev'])) {
-    $composer['autoload-dev'] = [];
-}
+    if (!isset($composer['autoload-dev'])) {
+        $composer['autoload-dev'] = [];
+    }
 
-if (!isset($composer['autoload-dev']['psr-4'])) {
-    $composer['autoload-dev']['psr-4'] = [];
-}
+    if (!isset($composer['autoload-dev']['psr-4'])) {
+        $composer['autoload-dev']['psr-4'] = [];
+    }
 
 // Add ReviewSystem namespace
-if (!isset($composer['autoload-dev']['psr-4']['ReviewSystem\\'])) {
-    $composer['autoload-dev']['psr-4']['ReviewSystem\\'] = 'review-system/';
-}
+    if (!isset($composer['autoload-dev']['psr-4']['ReviewSystem\\'])) {
+        $composer['autoload-dev']['psr-4']['ReviewSystem\\'] = 'review-system/';
+    }
 
     // Add classmap for subdirectories
     if (!isset($composer['autoload-dev']['classmap'])) {
         $composer['autoload-dev']['classmap'] = [];
     }
-    
+
     $classmapDirs = [
         'codementor-ai/engine/',
         'codementor-ai/rules/'
     ];
 
-foreach ($classmapDirs as $dir) {
-    if (!in_array($dir, $composer['autoload-dev']['classmap'])) {
-        $composer['autoload-dev']['classmap'][] = $dir;
+    foreach ($classmapDirs as $dir) {
+        if (!in_array($dir, $composer['autoload-dev']['classmap'])) {
+            $composer['autoload-dev']['classmap'][] = $dir;
+        }
     }
-}
 
 // Write back to composer.json
-$json = json_encode($composer, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+    $json = json_encode($composer, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
 
-if (json_last_error() !== JSON_ERROR_NONE) {
-    echo "❌ Error encoding JSON\n";
-    exit(1);
-}
+    if (json_last_error() !== JSON_ERROR_NONE) {
+        echo "❌ Error encoding JSON\n";
+        exit(1);
+    }
 
-file_put_contents($composerFile, $json);
+    file_put_contents($composerFile, $json);
 
-echo "✅ composer.json updated successfully\n";
-echo "📝 Added review scripts\n";
-echo "📝 Added ReviewSystem autoloading\n";
-echo "🔄 Run 'composer dump-autoload' to regenerate autoloader\n"; 
+    echo "✅ composer.json updated successfully\n";
+    echo "📝 Added review scripts\n";
+    echo "📝 Added ReviewSystem autoloading\n";
+    echo "🔄 Run 'composer dump-autoload' to regenerate autoloader\n";

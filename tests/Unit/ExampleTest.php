@@ -11,6 +11,8 @@ class ExampleTest extends TestCase
      */
     public function test_that_true_is_true(): void
     {
-        $this->assertTrue(true);
+        // This is a placeholder test to verify the testing framework works
+        $result = 2 + 2;
+        $this->assertEquals(4, $result);
     }
 }
