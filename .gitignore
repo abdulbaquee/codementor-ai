@@ -1,3 +1,58 @@
+# CodeMentor AI - Multi-Language Code Review System .gitignore
+
+# =============================================================================
+# REVIEW SYSTEM SPECIFIC IGNORES
+# =============================================================================
+
+# Generated reports (keep the reports folder structure)
+reports/*.html
+reports/*.json
+reports/*.xml
+
+# Cache files
+cache/*
+!cache/.gitkeep
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+
+# Install marker (contains sensitive paths)
+install-marker.json
+
+# =============================================================================
+# PHP/LARAVEL IGNORES
+# =============================================================================
+
+# Composer
+vendor/
+composer.lock
+
+# Laravel
+.env
+.env.backup
+.phpunit.result.cache
+Homestead.json
+Homestead.yaml
+auth.json
+npm-debug.log
+yarn-error.log
+
+# Laravel storage and cache
+storage/*.key
+storage/logs/*.log
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*
+!storage/framework/cache/.gitkeep
+!storage/framework/sessions/.gitkeep
+!storage/framework/views/.gitkeep
+
+# =============================================================================
+# PYTHON IGNORES (for future multi-language support)
+# =============================================================================
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -56,7 +111,6 @@ cover/
 *.pot
 
 # Django stuff:
-*.log
 local_settings.py
 db.sqlite3
 db.sqlite3-journal
@@ -128,7 +182,6 @@ celerybeat.pid
 *.sage.py
 
 # Environments
-.env
 .venv
 env/
 venv/
@@ -160,15 +213,79 @@ dmypy.json
 # Cython debug symbols
 cython_debug/
 
-# PyCharm
-#  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
-#  be found at https://github.com/github/gitignore/blob/main/Global/JetBrains.gitignore
-#  and can be added to the global gitignore or merged into this file.  For a more nuclear
-#  option (not recommended) you can uncomment the following to ignore the entire idea folder.
-#.idea/
-
 # Ruff stuff:
 .ruff_cache/
 
 # PyPI configuration file
 .pypirc
+
+# =============================================================================
+# GENERAL DEVELOPMENT IGNORES
+# =============================================================================
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Backup files
+*.bak
+*.backup
+
+# Node.js (for future frontend components)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# =============================================================================
+# MACHINE LEARNING / AI MODEL FILES
+# =============================================================================
+
+# AI model files (can be large)
+*.pkl
+*.pickle
+*.joblib
+*.h5
+*.hdf5
+*.pb
+*.onnx
+*.pt
+*.pth
+
+# Model checkpoints
+checkpoints/
+models/
+*.ckpt
+
+# Training logs
+logs/
+tensorboard_logs/
+wandb/
+
+# =============================================================================
+# SECURITY & SENSITIVE FILES
+# =============================================================================
+
+# API keys and secrets
+*.key
+*.pem
+*.p12
+*.pfx
+secrets.json
+credentials.json
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Configuration files with sensitive data
+config.local.php
+.env.local
+.env.production

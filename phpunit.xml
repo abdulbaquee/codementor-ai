@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="tests/TestCase.php"
+         colors="true"
+         processIsolation="false"
+         stopOnFailure="false"
+         cacheDirectory="cache/phpunit">
+    <testsuites>
+        <testsuite name="CodeMentor AI Unit Tests">
+            <directory>tests/Unit</directory>
+        </testsuite>
+        <testsuite name="CodeMentor AI Integration Tests">
+            <directory>tests/Integration</directory>
+        </testsuite>
+        <testsuite name="CodeMentor AI Feature Tests">
+            <directory>tests/Feature</directory>
+        </testsuite>
+        <testsuite name="CodeMentor AI All Tests">
+            <directory>tests</directory>
+        </testsuite>
+    </testsuites>
+    <source>
+        <include>
+            <directory suffix=".php">engine</directory>
+            <directory suffix=".php">rules</directory>
+        </include>
+        <exclude>
+            <directory>tests</directory>
+            <directory>cache</directory>
+            <directory>reports</directory>
+        </exclude>
+    </source>
+    <php>
+        <env name="APP_ENV" value="testing"/>
+        <env name="REVIEW_SYSTEM_TESTING" value="true"/>
+    </php>
+</phpunit> 

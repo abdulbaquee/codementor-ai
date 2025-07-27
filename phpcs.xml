@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<ruleset name="LaravelProjectStandard">
+  <description>PSR-12 and Laravel style code standard for app, routes, and review-system.</description>
+
+  <!-- Include directories -->
+  <file>../app</file>
+  <file>../routes</file>
+  <file>../database</file>
+  <file>.</file>
+
+  <!-- Base standard -->
+  <rule ref="PSR12" />
+
+  <!-- Custom recommended rules -->
+  <rule ref="Generic.WhiteSpace.DisallowTabIndent"/>
+  <rule ref="Squiz.WhiteSpace.SuperfluousWhitespace"/>
+  <rule ref="Squiz.Classes.ValidClassName"/>
+
+  <!-- Exclude some files -->
+  <exclude-pattern>*/vendor/*</exclude-pattern>
+  <exclude-pattern>*/tests/*</exclude-pattern>
+
+  <!-- Command line options -->
+  <arg name="colors"/>
+  <arg name="report" value="full"/>
+  <arg name="warning-severity" value="5"/>
+  <arg name="error-severity" value="5"/>
+</ruleset>
