@@ -581,5 +581,5 @@ fi
 echo "  • composer run review:quick   # Manual quick review"
 echo "  • composer run review:full    # Manual full review"
 echo ""
-echo -e "${CYAN}📖 Documentation: review-system/docs/${NC}"
-echo -e "${CYAN}🔧 Uninstall: ./review-system/uninstall.sh${NC}"
+echo -e "${CYAN}📖 Documentation: codementor-ai/docs/${NC}"
+echo -e "${CYAN}🔧 Uninstall: ./codementor-ai/uninstall.sh${NC}"

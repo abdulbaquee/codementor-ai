@@ -5,6 +5,30 @@
 
 set -e
 
+# Rollback functionality
+ROLLBACK_NEEDED=false
+ROLLBACK_STEPS=()
+
+# Function to add rollback step
+add_rollback_step() {
+    ROLLBACK_STEPS+=("$1")
+}
+
+# Function to execute rollback
+execute_rollback() {
+    if [ "$ROLLBACK_NEEDED" = true ]; then
+        echo -e "${RED}🔄 Executing rollback...${NC}"
+        for step in "${ROLLBACK_STEPS[@]}"; do
+            echo -e "${YELLOW}   Rolling back: $step${NC}"
+            eval "$step"
+        done
+        echo -e "${GREEN}✅ Rollback completed${NC}"
+    fi
+}
+
+# Trap to handle errors and rollback
+trap 'execute_rollback' ERR
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -233,20 +257,110 @@ else
     echo -e "${YELLOW}⏭️  Skipping Git hooks removal${NC}"
 fi
 
+# Function to analyze package dependencies
+analyze_package_dependencies() {
+    local packages=("$@")
+    local dependency_map=()
+    
+    echo -e "${BLUE}🔍 Analyzing package dependencies...${NC}"
+    
+    for package in "${packages[@]}"; do
+        if composer show "$package" --working-dir "$PROJECT_ROOT" > /dev/null 2>&1; then
+            local dependents=$(composer why "$package" --working-dir "$PROJECT_ROOT" 2>/dev/null | grep -E "^[a-zA-Z]" | cut -d' ' -f1 | tr '\n' ' ')
+            if [ -n "$dependents" ]; then
+                echo -e "${YELLOW}   $package is required by: $dependents${NC}"
+                dependency_map+=("$package:$dependents")
+            else
+                echo -e "${GREEN}   $package has no dependents${NC}"
+                dependency_map+=("$package:")
+            fi
+        fi
+    done
+    
+    # Sort packages by dependency count (most dependent first)
+    local sorted_packages=()
+    for package in "${packages[@]}"; do
+        local dep_count=0
+        for dep_info in "${dependency_map[@]}"; do
+            if [[ "$dep_info" == *"$package"* ]]; then
+                dep_count=$(echo "$dep_info" | cut -d':' -f2 | wc -w)
+                break
+            fi
+        done
+        sorted_packages+=("$dep_count:$package")
+    done
+    
+    # Sort by dependency count (descending) and extract package names
+    IFS=$'\n' sorted_packages=($(sort -nr <<<"${sorted_packages[*]}"))
+    unset IFS
+    
+    local result=()
+    for item in "${sorted_packages[@]}"; do
+        result+=("$(echo "$item" | cut -d':' -f2)")
+    done
+    
+    echo -e "${GREEN}✅ Dependency analysis complete${NC}"
+    echo -e "${CYAN}📋 Removal order: ${result[*]}${NC}"
+    
+    echo "${result[@]}"
+}
+
 # 2. Remove external packages (if requested)
 if [ "$REMOVE_PACKAGES" = true ]; then
     echo -e "${BLUE}📦 Removing external packages...${NC}"
     
+    # Define packages to remove
     PACKAGES_TO_REMOVE=("phpstan/phpstan" "squizlabs/php_codesniffer" "nunomaduro/larastan")
+    
+    # Analyze dependencies and get optimal removal order
+    OPTIMAL_ORDER=($(analyze_package_dependencies "${PACKAGES_TO_REMOVE[@]}"))
+    
+    # Use optimal order if analysis succeeded, otherwise use default order
+    if [ ${#OPTIMAL_ORDER[@]} -eq ${#PACKAGES_TO_REMOVE[@]} ]; then
+        PACKAGES_TO_REMOVE=("${OPTIMAL_ORDER[@]}")
+    else
+        # Fallback to manual order (larastan first as it depends on phpstan)
+        PACKAGES_TO_REMOVE=("nunomaduro/larastan" "squizlabs/php_codesniffer" "phpstan/phpstan")
+    fi
+    
+    # Track removal success for better error reporting
+    REMOVAL_SUCCESS=()
+    REMOVAL_FAILED=()
     
     for package in "${PACKAGES_TO_REMOVE[@]}"; do
         if composer show "$package" --working-dir "$PROJECT_ROOT" > /dev/null 2>&1; then
             echo -e "${YELLOW}🗑️  Removing $package...${NC}"
-            composer remove --dev "$package" --working-dir "$PROJECT_ROOT" --no-interaction || {
+            
+            # Store current state for potential rollback
+            ROLLBACK_NEEDED=true
+            add_rollback_step "composer require --dev $package --working-dir $PROJECT_ROOT --no-interaction"
+            
+            if composer remove --dev "$package" --working-dir "$PROJECT_ROOT" --no-interaction; then
+                echo -e "${GREEN}✅ Successfully removed $package${NC}"
+                REMOVAL_SUCCESS+=("$package")
+                # Remove rollback step since removal was successful
+                ROLLBACK_STEPS=("${ROLLBACK_STEPS[@]:1}")
+            else
                 echo -e "${RED}❌ Failed to remove $package${NC}"
-            }
+                REMOVAL_FAILED+=("$package")
+                
+                # Check if it's a dependency issue
+                if composer why "$package" --working-dir "$PROJECT_ROOT" > /dev/null 2>&1; then
+                    echo -e "${YELLOW}💡 $package is required by other packages. Will be removed when dependencies are removed.${NC}"
+                fi
+            fi
         else
             echo -e "${YELLOW}⏭️  $package not installed${NC}"
+        fi
+    done
+    
+    # Final verification of package removal
+    echo -e "${BLUE}🔍 Verifying package removal...${NC}"
+    for package in "${PACKAGES_TO_REMOVE[@]}"; do
+        if composer show "$package" --working-dir "$PROJECT_ROOT" > /dev/null 2>&1; then
+            echo -e "${RED}⚠️  $package is still installed${NC}"
+        else
+            echo -e "${GREEN}✅ $package successfully removed${NC}"
         fi
     done
     
@@ -259,18 +373,36 @@ fi
 if [ "$REMOVE_CONFIG" = true ]; then
     echo -e "${BLUE}📝 Removing composer configuration...${NC}"
     
-    # Check if backup exists
+    # Check if backup exists and is valid
     if [ -f "$COMPOSER_FILE.bak.review-system" ] && [ "$RESTORE_BACKUP" = true ]; then
         echo -e "${YELLOW}🔄 Restoring composer.json from backup...${NC}"
-        cp "$COMPOSER_FILE.bak.review-system" "$COMPOSER_FILE"
-        echo -e "${GREEN}✅ composer.json restored from backup${NC}"
-    else
+        
+        # Validate backup file before restoration
+        if php -r "json_decode(file_get_contents('$COMPOSER_FILE.bak.review-system')); echo json_last_error() === JSON_ERROR_NONE ? 'valid' : 'invalid';" | grep -q "valid"; then
+            cp "$COMPOSER_FILE.bak.review-system" "$COMPOSER_FILE"
+            echo -e "${GREEN}✅ composer.json restored from backup${NC}"
+        else
+            echo -e "${RED}❌ Backup file is invalid JSON, falling back to manual cleanup${NC}"
+            RESTORE_BACKUP=false
+        fi
+    elif [ "$RESTORE_BACKUP" = true ]; then
+        echo -e "${YELLOW}⚠️  Backup file not found, falling back to manual cleanup${NC}"
+        RESTORE_BACKUP=false
+    fi
+    
+    # If backup restoration failed or wasn't requested, do manual cleanup
+    if [ "$RESTORE_BACKUP" = false ]; then
         echo -e "${BLUE}🔧 Removing review system scripts and autoloading...${NC}"
         
         php <<PHP
 <?php
 \$composerPath = '$COMPOSER_FILE';
 \$composerJson = json_decode(file_get_contents(\$composerPath), true);
+
+if (\$composerJson === null) {
+    echo "❌ Error: Invalid JSON in composer.json\n";
+    exit(1);
+}
 
 // Remove review system scripts
 \$scriptsToRemove = [
@@ -306,11 +438,37 @@ if (isset(\$composerJson['autoload-dev']['classmap'])) {
     );
 }
 
-file_put_contents(\$composerPath, json_encode(\$composerJson, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . PHP_EOL);
-echo "✅ composer.json cleaned successfully.\n";
+// Clean up empty autoload-dev sections
+if (isset(\$composerJson['autoload-dev']['psr-4']) && empty(\$composerJson['autoload-dev']['psr-4'])) {
+    unset(\$composerJson['autoload-dev']['psr-4']);
+}
+if (isset(\$composerJson['autoload-dev']['classmap']) && empty(\$composerJson['autoload-dev']['classmap'])) {
+    unset(\$composerJson['autoload-dev']['classmap']);
+}
+if (isset(\$composerJson['autoload-dev']) && empty(\$composerJson['autoload-dev'])) {
+    unset(\$composerJson['autoload-dev']);
+}
+
+// Write back the cleaned composer.json
+if (file_put_contents(\$composerPath, json_encode(\$composerJson, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . PHP_EOL)) {
+    echo "✅ composer.json cleaned successfully.\n";
+} else {
+    echo "❌ Error: Failed to write composer.json\n";
+    exit(1);
+}
 PHP
         
-        echo -e "${GREEN}✅ Composer configuration cleaned${NC}"
+        if [ $? -eq 0 ]; then
+            echo -e "${GREEN}✅ Composer configuration cleaned${NC}"
+        else
+            echo -e "${RED}❌ Failed to clean composer configuration${NC}"
+        fi
+    fi
+    
+    # Remove backup file after successful composer configuration cleanup
+    if [ "$RESTORE_BACKUP" = true ] && [ -f "$COMPOSER_FILE.bak.review-system" ]; then
+        rm "$COMPOSER_FILE.bak.review-system"
+        echo -e "${GREEN}✅ Removed composer.json backup${NC}"
     fi
 else
     echo -e "${YELLOW}⏭️  Skipping composer configuration removal${NC}"
@@ -347,12 +505,6 @@ if [ "$REMOVE_CONFIG" = true ]; then
         rm "$MARKER_FILE"
         echo -e "${GREEN}✅ Removed install-marker.json${NC}"
     fi
-    
-    # Remove backup if restoring
-    if [ "$RESTORE_BACKUP" = true ] && [ -f "$COMPOSER_FILE.bak.review-system" ]; then
-        rm "$COMPOSER_FILE.bak.review-system"
-        echo -e "${GREEN}✅ Removed composer.json backup${NC}"
-    fi
 else
     echo -e "${YELLOW}⏭️  Skipping configuration file removal${NC}"
 fi
@@ -369,12 +521,28 @@ echo ""
 echo -e "${GREEN}🎉 Uninstallation complete!${NC}"
 echo "=================================="
 
+# Detailed summary
 if [ "$REMOVE_HOOKS" = true ]; then
     echo -e "${GREEN}✅ Git hooks removed${NC}"
 fi
 
 if [ "$REMOVE_PACKAGES" = true ]; then
     echo -e "${GREEN}✅ External packages removed${NC}"
+    
+    # Show detailed package removal results
+    if [ ${#REMOVAL_SUCCESS[@]} -gt 0 ]; then
+        echo -e "${CYAN}   Successfully removed:${NC}"
+        for package in "${REMOVAL_SUCCESS[@]}"; do
+            echo -e "${GREEN}     • $package${NC}"
+        done
+    fi
+    
+    if [ ${#REMOVAL_FAILED[@]} -gt 0 ]; then
+        echo -e "${YELLOW}   Failed to remove:${NC}"
+        for package in "${REMOVAL_FAILED[@]}"; do
+            echo -e "${RED}     • $package${NC}"
+        done
+    fi
 fi
 
 if [ "$REMOVE_CONFIG" = true ]; then
@@ -383,6 +551,28 @@ fi
 
 if [ "$RESTORE_BACKUP" = true ]; then
     echo -e "${GREEN}✅ Original composer.json restored${NC}"
+fi
+
+# Final verification
+echo ""
+echo -e "${BLUE}🔍 Final verification...${NC}"
+if [ "$REMOVE_PACKAGES" = true ]; then
+    REMAINING_PACKAGES=()
+    for package in "${PACKAGES_TO_REMOVE[@]}"; do
+        if composer show "$package" --working-dir "$PROJECT_ROOT" > /dev/null 2>&1; then
+            REMAINING_PACKAGES+=("$package")
+        fi
+    done
+    
+    if [ ${#REMAINING_PACKAGES[@]} -gt 0 ]; then
+        echo -e "${YELLOW}⚠️  Some packages are still installed:${NC}"
+        for package in "${REMAINING_PACKAGES[@]}"; do
+            echo -e "${YELLOW}   • $package${NC}"
+        done
+        echo -e "${YELLOW}💡 These may be required by other packages in your project${NC}"
+    else
+        echo -e "${GREEN}✅ All target packages successfully removed${NC}"
+    fi
 fi
 
 echo ""
@@ -405,4 +595,4 @@ if [ "$REMOVE_CONFIG" = true ]; then
 fi
 
 echo ""
-echo -e "${CYAN}💡 To reinstall: ./review-system/install.sh --full${NC}" 
+echo -e "${CYAN}💡 To reinstall: ./codementor-ai/install.sh --full${NC}" 

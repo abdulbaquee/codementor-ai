@@ -11,9 +11,26 @@
 <strong>Enterprise-Grade Automated Code Analysis for Laravel Projects</strong>
 </p>
 
-## 🚀 Quick Start
+## 📑 Table of Contents
+- [📚 Documentation](#-documentation)
+- [🚀 Quick Start](#-quick-start)
+- [🎯 Smart Laravel Detection](#-smart-laravel-detection)
+- [🚑 Recovery & Troubleshooting](#-recovery--troubleshooting)
+- [🎯 Features](#-features)
+- [🔍 Advanced Code Analysis](#-advanced-code-analysis)
+- [🧠 AI-Powered Intelligence](#-ai-powered-intelligence)
+- [🛡️ Advanced Security Analysis](#️-advanced-security-analysis)
+- [📋 Comprehensive Rule System](#-comprehensive-rule-system)
 
-### Installation
+## 📚 Documentation
+
+### **📖 Detailed Guides**
+- **[📋 Installation Guide](INSTALL.md)** - Complete installation instructions, troubleshooting, and configuration
+- **[🔧 Uninstall Guide](UNINSTALL_FIXES.md)** - Comprehensive uninstallation process and fixes
+
+### **🚀 Quick Start**
+
+#### Installation
 ```bash
 # Full installation (recommended)
 ./codementor-ai/install.sh --full
@@ -24,6 +41,8 @@
 # Git hooks only
 ./codementor-ai/install.sh --hooks
 ```
+
+> 💡 **Need detailed instructions?** See our [📋 Installation Guide](INSTALL.md) for comprehensive setup instructions, troubleshooting, and advanced configuration options.
 
 ### 🎯 Smart Laravel Detection
 CodeMentor AI **automatically detects** Laravel projects and creates the appropriate configuration:
@@ -43,6 +62,20 @@ php codementor-ai/cli.php --quick
 # Full review with HTML report
 php codementor-ai/cli.php --full --format=html
 ```
+
+#### Uninstallation
+```bash
+# Full uninstall (removes everything)
+./codementor-ai/uninstall.sh --full
+
+# Safe uninstall (keeps packages)
+./codementor-ai/uninstall.sh
+
+# Remove packages only
+./codementor-ai/uninstall.sh --packages
+```
+
+> 🔧 **Need uninstall help?** See our [🔧 Uninstall Guide](UNINSTALL_FIXES.md) for detailed uninstallation instructions and troubleshooting.
 
 ## 🚑 Recovery & Troubleshooting
 
